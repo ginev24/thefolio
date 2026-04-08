@@ -1,13 +1,14 @@
-
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL:
+    process.env.NODE_ENV === 'production'
+      ? 'https://thefolio-wa88.onrender.com/api'
+      : 'http://localhost:5000/api',
 });
 
-// ── Request interceptor ───────────────────────────────────────────────────
-// Runs automatically before EVERY request sent through this instance.
-// Reads the token saved in localStorage and adds it as a Bearer token header.
+// ── Request interceptor ────────────────────────────────────────────────
+// Automatically adds JWT token from localStorage to every request.
 instance.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
