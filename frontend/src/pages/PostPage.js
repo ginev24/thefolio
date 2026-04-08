@@ -117,6 +117,13 @@ const PostPage = () => {
     setReplyErr('');
   };
 
+  const cloudImg = (image) => {
+  if (!image) return null;
+  if (image.startsWith('http')) return image;
+  const publicId = image.replace(/^uploads\//, '');
+  return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${publicId}`;
+};
+
   if (loading) return <main className='container'><p style={{ padding:'3rem', fontStyle:'italic' }}>Loading post...</p></main>;
   if (error)   return <main className='container'><p className='error-msg' style={{ padding:'2rem' }}>{error}</p></main>;
 
@@ -131,7 +138,7 @@ const PostPage = () => {
 
         {post.image && (
           <img
-            src={post.image}
+            src={cloudImg(post.image)}
             alt={post.title}
             style={{ width:'100%', maxHeight:360, objectFit:'cover', borderRadius:'8px', margin:'0 0 20px' }}
           />
@@ -141,7 +148,7 @@ const PostPage = () => {
 
         <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px', color:'var(--accent)', fontSize:'0.88rem' }}>
           {post.author?.profilePic && (
-            <img src={post.author.profilePic} alt=''
+            <img src={cloudImg(post.author.profilePic)} alt=''
               style={{ width:32, height:32, borderRadius:'50%', objectFit:'cover', margin:0 }} />
           )}
           <span>By <strong>{post.author?.name}</strong></span>
@@ -195,7 +202,7 @@ const PostPage = () => {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', fontSize:'0.88rem', color:'var(--accent)' }}>
                   {comment.author?.profilePic && (
-                    <img src={comment.author.profilePic} alt=''
+                    <img src={cloudImg(comment.author.profilePic)} alt=''
                       style={{ width:24, height:24, borderRadius:'50%', objectFit:'cover', margin:0 }} />
                   )}
                   <strong>{comment.author?.name}</strong>
@@ -273,7 +280,7 @@ const PostPage = () => {
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                         <div style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.82rem', color:'var(--accent)' }}>
                           {reply.author?.profilePic && (
-                            <img src={reply.author.profilePic} alt=''
+                            <img src={cloudImg(reply.author.profilePic)} alt=''
                               style={{ width:20, height:20, borderRadius:'50%', objectFit:'cover', margin:0 }} />
                           )}
                           <strong>{reply.author?.name}</strong>
