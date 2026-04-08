@@ -9,7 +9,6 @@ const router = express.Router();
 
 // ── helper: extract public_id from a Cloudinary URL ──────────────────────
 const getPublicId = (url = '') => {
-  // URL shape: .../upload/v1234567890/<folder/public_id>.<ext>
   const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/);
   return match ? match[1] : null;
 };
@@ -22,7 +21,8 @@ router.get('/', async (req, res) => {
       .sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error fetching posts:', err);
+    res.status(500).json({ message: 'Server error while fetching posts' });
   }
 });
 
@@ -37,7 +37,8 @@ router.get('/:id', async (req, res) => {
     }
     res.json(post);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error fetching post:', err);
+    res.status(500).json({ message: 'Server error while fetching post' });
   }
 });
 
@@ -46,20 +47,27 @@ router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res
   try {
     const { title, body } = req.body;
 
-    // req.file.path is the Cloudinary secure URL (set by multer-storage-cloudinary)
-    const image = req.file ? req.file.path : '';
+    if (!title || !body) {
+      return res.status(400).json({ message: 'Title and body are required' });
+    }
 
-    const post = await Post.create({
+    const imageUrl = req.file ? req.file.path : '';
+
+    const post = new Post({
       title,
       body,
-      image,            // stores the full Cloudinary URL
+      image: imageUrl,
       author: req.user._id,
+      status: 'published',
     });
 
+    await post.save();
     await post.populate('author', 'name profilePic');
+
     res.status(201).json(post);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error creating post:', err);
+    res.status(500).json({ message: 'Server error while creating post' });
   }
 });
 
@@ -80,19 +88,26 @@ router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, r
     if (req.body.body)  post.body  = req.body.body;
 
     if (req.file) {
-      // Delete the old image from Cloudinary before replacing it
+      // Delete old image before replacing
       if (post.image) {
         const publicId = getPublicId(post.image);
-        if (publicId) await cloudinary.uploader.destroy(publicId);
+        if (publicId) {
+          try {
+            await cloudinary.uploader.destroy(publicId);
+          } catch (err) {
+            console.error('Error deleting old image:', err);
+          }
+        }
       }
-      post.image = req.file.path;   // new Cloudinary URL
+      post.image = req.file.path;
     }
 
     await post.save();
     await post.populate('author', 'name profilePic');
     res.json(post);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error updating post:', err);
+    res.status(500).json({ message: 'Server error while updating post' });
   }
 });
 
@@ -109,16 +124,22 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
-    // Delete the associated image from Cloudinary
     if (post.image) {
       const publicId = getPublicId(post.image);
-      if (publicId) await cloudinary.uploader.destroy(publicId);
+      if (publicId) {
+        try {
+          await cloudinary.uploader.destroy(publicId);
+        } catch (err) {
+          console.error('Error deleting image:', err);
+        }
+      }
     }
 
     await post.deleteOne();
     res.json({ message: 'Post deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error('Error deleting post:', err);
+    res.status(500).json({ message: 'Server error while deleting post' });
   }
 });
 
