@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+//import { useAuth } from '../context/AuthContext';
 import API from '../api/axios';
 
 const CreatePostPage = () => {
@@ -10,7 +10,7 @@ const CreatePostPage = () => {
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { user }  = useAuth();
+  //const { user }  = useAuth();
   const navigate  = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -66,16 +66,13 @@ const CreatePostPage = () => {
             />
           </div>
 
-          {/* Image upload — only shown to admins */}
-          {user?.role === 'admin' && (
-            <div className='form-field'>
+          <div className='form-field'>
               <label htmlFor='image'>Cover Image (Admin only):</label>
               <input id='image' type='file' accept='image/*'
                 onChange={e => setImage(e.target.files[0])}
                 style={{ marginTop:6, fontFamily:"'Crimson Text', serif" }} />
               <span className='info-msg'>JPG, PNG, GIF or WebP — max 5 MB</span>
             </div>
-          )}
 
           <button className='btn-primary' onClick={handleSubmit} disabled={loading}>
             {loading ? 'Publishing...' : 'Publish Post'}
