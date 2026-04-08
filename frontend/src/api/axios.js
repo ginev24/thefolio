@@ -1,13 +1,3 @@
-// frontend/src/api/axios.js
-// A pre-configured Axios instance that:
-//   1. Points all requests at http://localhost:5000/api (the Express server)
-//   2. Automatically attaches the JWT token from localStorage to every request
-//      via a request interceptor — so you never have to add the header manually
-//
-// Usage in any page/component:
-//   import API from '../api/axios';
-//   const { data } = await API.get('/posts');
-//   const { data } = await API.post('/auth/login', { email, password });
 
 import axios from 'axios';
 
