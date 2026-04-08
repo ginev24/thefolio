@@ -1,5 +1,5 @@
 // backend/models/Post.js
-// Each post document stores the title, body, an optional image URL,
+// Each post document stores the title, body, an optional image filename,
 // and a reference to the User who authored it.
 // { ref: 'User' } lets us call .populate('author') to get the full user object.
 
@@ -18,14 +18,7 @@ const postSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      default: '', // will store Cloudinary secure URL (https://...)
-      validate: {
-        validator: function (v) {
-          // allow empty or valid URL
-          return !v || /^https?:\/\/.+/.test(v);
-        },
-        message: props => `${props.value} is not a valid URL`,
-      },
+      default: '', // filename stored in backend/uploads/
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
