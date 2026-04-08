@@ -109,7 +109,7 @@ const HomePage = () => {
         {posts.map(post => (
           <div key={post._id} className='card-warm' style={{ padding:'20px', display:'flex', flexDirection:'column', gap:'10px' }}>
             {post.image && (
-              <img src={`http://localhost:5000/uploads/${post.image}`} alt={post.title}
+              <img src={post.image} alt={post.title}
                 style={{ width:'100%', height:180, objectFit:'cover', borderRadius:'8px', margin:0 }} />
             )}
             <h3 style={{ fontFamily:"'Cinzel', serif", fontSize:'1rem' }}>
@@ -121,7 +121,7 @@ const HomePage = () => {
             <div style={{ display:'flex', justifyContent:'space-between', fontSize:'0.82rem', color:'var(--accent)' }}>
               <span style={{ display:'flex', alignItems:'center', gap:'6px' }}>
                 {post.author?.profilePic && (
-                  <img src={`http://localhost:5000/uploads/${post.author.profilePic}`} alt=''
+                  <img src={post.author.profilePic}alt=''
                     style={{ width:24, height:24, borderRadius:'50%', objectFit:'cover', margin:0 }} />
                 )}
                 {post.author?.name}

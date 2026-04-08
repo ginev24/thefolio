@@ -53,7 +53,7 @@ const ProfilePage = () => {
 
   // Profile picture src — falls back to a chess emoji placeholder
   const picSrc = user?.profilePic
-    ? `http://localhost:5000/uploads/${user.profilePic}`
+    ? `{user.profilePic}`
     : null;
 
   return (

@@ -92,7 +92,7 @@ const AdminPage = () => {
                 <tr key={u._id}>
                   <td style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                     {u.profilePic && (
-                      <img src={`http://localhost:5000/uploads/${u.profilePic}`} alt=''
+                      <img src={u.profilePic} alt=''
                         style={{ width:28, height:28, borderRadius:'50%', objectFit:'cover', margin:0 }} />
                     )}
                     {u.name}
