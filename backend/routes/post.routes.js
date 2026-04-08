@@ -1,10 +1,18 @@
-const express        = require('express');
-const Post           = require('../models/Post');
-const { protect }    = require('../middleware/auth.middleware');
+const express           = require('express');
+const Post              = require('../models/Post');
+const { protect }       = require('../middleware/auth.middleware');
 const { memberOrAdmin } = require('../middleware/role.middleware');
-const upload         = require('../middleware/upload');
+const upload            = require('../middleware/upload');
+const cloudinary        = require('../config/cloudinary');
 
 const router = express.Router();
+
+// ── helper: extract public_id from a Cloudinary URL ──────────────────────
+const getPublicId = (url = '') => {
+  // URL shape: .../upload/v1234567890/<folder/public_id>.<ext>
+  const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/);
+  return match ? match[1] : null;
+};
 
 // ── GET /api/posts ────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
@@ -34,20 +42,20 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST /api/posts ───────────────────────────────────────────────────────
-// Members and admins can create posts.
 router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res) => {
   try {
     const { title, body } = req.body;
-    const image = req.file ? req.file.filename : '';
+
+    // req.file.path is the Cloudinary secure URL (set by multer-storage-cloudinary)
+    const image = req.file ? req.file.path : '';
 
     const post = await Post.create({
       title,
       body,
-      image,
+      image,            // stores the full Cloudinary URL
       author: req.user._id,
     });
 
-    // Populate author before returning so the frontend gets name immediately
     await post.populate('author', 'name profilePic');
     res.status(201).json(post);
   } catch (err) {
@@ -56,7 +64,6 @@ router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res
 });
 
 // ── PUT /api/posts/:id ────────────────────────────────────────────────────
-// Only the post's author OR an admin can edit it.
 router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -71,9 +78,18 @@ router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, r
 
     if (req.body.title) post.title = req.body.title;
     if (req.body.body)  post.body  = req.body.body;
-    if (req.file)       post.image = req.file.filename;
+
+    if (req.file) {
+      // Delete the old image from Cloudinary before replacing it
+      if (post.image) {
+        const publicId = getPublicId(post.image);
+        if (publicId) await cloudinary.uploader.destroy(publicId);
+      }
+      post.image = req.file.path;   // new Cloudinary URL
+    }
 
     await post.save();
+    await post.populate('author', 'name profilePic');
     res.json(post);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -81,7 +97,6 @@ router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, r
 });
 
 // ── DELETE /api/posts/:id ─────────────────────────────────────────────────
-// Only the post's author OR an admin can delete it.
 router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -92,6 +107,12 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
 
     if (!isOwner && !isAdmin) {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
+    }
+
+    // Delete the associated image from Cloudinary
+    if (post.image) {
+      const publicId = getPublicId(post.image);
+      if (publicId) await cloudinary.uploader.destroy(publicId);
     }
 
     await post.deleteOne();
