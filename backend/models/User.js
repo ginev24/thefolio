@@ -41,6 +41,9 @@ const userSchema = new mongoose.Schema(
     profilePic: {
       type: String,
       default: '', // stores the filename e.g. '1719123456789-342156789.jpg'
+
+    resetPasswordToken:  { type: String },
+    resetPasswordExpire: { type: Date },
     },
   },
   { timestamps: true } // adds createdAt and updatedAt automatically
@@ -54,9 +57,6 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
-
-resetPasswordToken:  { type: String },
-resetPasswordExpire: { type: Date },
 
 // ── Instance method ────────────────────────────────────────────────────────
 // Compares a plain-text password entered at login with the stored hash.

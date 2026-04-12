@@ -114,7 +114,7 @@ router.put('/profile', protect, upload.single('profilePic'), async (req, res) =>
   }
 });
 
-// ── PUT /api/auth/change-password ─────────────────────────────────────────
+/// ── PUT /api/auth/change-password ─────────────────────────────────────────
 router.put('/change-password', protect, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   try {
@@ -125,7 +125,6 @@ router.put('/change-password', protect, async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
 
-    // Assigning to user.password triggers the pre-save hook to hash it
     user.password = newPassword;
     await user.save();
 
@@ -133,11 +132,9 @@ router.put('/change-password', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
-  // auth.routes.js — idagdag bago ang module.exports
+}); // ✅ isara ang change-password dito
 
-const crypto = require('crypto');
-const nodemailer = require('nodemailer');
-
+// ── POST /api/auth/forgot-password ────────────────────────────────────────
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   try {
@@ -147,16 +144,13 @@ router.post('/forgot-password', async (req, res) => {
       return res.json({ message: 'If that email exists, a reset link has been sent.' });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
     await user.save();
 
-    // Reset URL
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-    // ← DITO ang sendMail
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
@@ -166,8 +160,8 @@ router.post('/forgot-password', async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `"Chess Unlocked" <${process.env.EMAIL_USER}>`,  // sender (galing .env)
-      to: user.email,   // recipient (email ng nag-request)
+      from: `"Chess Unlocked" <${process.env.EMAIL_USER}>`,
+      to: user.email,
       subject: 'Password Reset Request',
       html: `
         <h2>Reset Your Password</h2>
@@ -184,3 +178,4 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 module.exports = router;
+
