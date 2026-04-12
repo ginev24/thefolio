@@ -9,11 +9,12 @@ const upload      = require('../middleware/upload');
 
 const router = express.Router();
 
+// Helper: generate a JWT that expires in 7 days
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 // ── In-memory OTP store ───────────────────────────────────────────────────
-const otpStore = new Map();
+const otpStore = new Map(); // { email: { otp, expiresAt } }
 
 // ── Nodemailer transporter ────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
@@ -29,15 +30,13 @@ router.post('/send-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ message: 'Email is required.' });
 
+  // Check if email is already registered
   const exists = await User.findOne({ email });
   if (exists) return res.status(400).json({ message: 'Email is already registered.' });
 
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    return res.json({ message: 'OTP skipped.', skipped: true });
-  }
-
   const otp       = crypto.randomInt(100000, 999999).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000;
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+
   otpStore.set(email, { otp, expiresAt });
 
   try {
@@ -61,19 +60,15 @@ router.post('/send-otp', async (req, res) => {
         </div>
       `,
     });
-    res.json({ message: 'OTP sent successfully.', skipped: false });
+    res.json({ message: 'OTP sent successfully.' });
   } catch (err) {
     console.error('Nodemailer error:', err);
-    res.status(500).json({ message: 'Failed to send OTP.' });
+    res.status(500).json({ message: 'Failed to send OTP. Check EMAIL_USER/EMAIL_PASS sa .env.' });
   }
 });
 
 // ── POST /api/auth/verify-otp ─────────────────────────────────────────────
 router.post('/verify-otp', (req, res) => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    return res.json({ message: 'Email verified successfully.' });
-  }
-
   const { email, otp } = req.body;
   const record = otpStore.get(email);
 
@@ -88,7 +83,7 @@ router.post('/verify-otp', (req, res) => {
   if (record.otp !== otp)
     return res.status(400).json({ message: 'Mali ang verification code.' });
 
-  otpStore.delete(email);
+  otpStore.delete(email); // one-time use lang
   res.json({ message: 'Email verified successfully.' });
 });
 
