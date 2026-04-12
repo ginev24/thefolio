@@ -1,7 +1,3 @@
-// backend/middleware/auth.middleware.js
-// The `protect` middleware runs before any route handler that requires login.
-// It reads the JWT token from the Authorization header, verifies it,
-// and attaches the full user object to req.user so route handlers can use it.
 
 const jwt  = require('jsonwebtoken');
 const User = require('../models/User');
