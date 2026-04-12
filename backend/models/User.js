@@ -55,6 +55,9 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+resetPasswordToken:  { type: String },
+resetPasswordExpire: { type: Date },
+
 // ── Instance method ────────────────────────────────────────────────────────
 // Compares a plain-text password entered at login with the stored hash.
 userSchema.methods.matchPassword = async function (enteredPassword) {

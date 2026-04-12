@@ -12,6 +12,8 @@ const jwt     = require('jsonwebtoken');
 const User    = require('../models/User');
 const { protect } = require('../middleware/auth.middleware');
 const upload       = require('../middleware/upload');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
@@ -131,6 +133,74 @@ router.put('/change-password', protect, async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
+  // ── POST /api/auth/forgot-password ────────────────────────────────────────
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  try {
+    const user = await User.findOne({ email });
+
+    // Always return success para hindi malaman kung naka-register ang email
+    if (!user) {
+      return res.json({ message: 'If that email exists, a reset link has been sent.' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
+    await user.save();
+
+    // Send email
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"Chess Unlocked" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: 'Password Reset Request',
+      html: `
+        <h2>Reset Your Password</h2>
+        <p>Click the link below to reset your password. This link expires in 30 minutes.</p>
+        <a href="${resetUrl}">${resetUrl}</a>
+      `,
+    });
+
+    res.json({ message: 'If that email exists, a reset link has been sent.' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ── POST /api/auth/reset-password/:token ──────────────────────────────────
+router.post('/reset-password/:token', async (req, res) => {
+  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+  try {
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired reset token.' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    res.json({ message: 'Password reset successful. You can now log in.' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+
 });
 
 module.exports = router;
