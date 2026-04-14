@@ -19,7 +19,7 @@ connectDB();
 // ── Global Middleware ────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://thefolio-git-main-ginev24s-projects.vercel.app'   
+  'https://thefolio-sigma.vercel.app'   
 ];
 
 app.use(cors({
