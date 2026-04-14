@@ -141,6 +141,31 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
     console.error('Error deleting post:', err);
     res.status(500).json({ message: 'Server error while deleting post' });
   }
+
+  // POST /api/posts/:id/heart  — toggle like/unlike
+router.post('/:id/heart', authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+    if (!post) return res.status(404).json({ message: 'Post not found' })
+
+    const userId = req.user._id  // galing sa authMiddleware
+    const idx = post.hearts.indexOf(userId)
+
+    if (idx === -1) {
+      post.hearts.push(userId)      // i-like
+    } else {
+      post.hearts.splice(idx, 1)    // i-unlike
+    }
+
+    await post.save()
+
+    res.json({
+      hearts: post.hearts.length,
+      liked:  idx === -1           // true = nag-like, false = nag-unlike
+    })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
 });
 
 module.exports = router;

@@ -37,6 +37,7 @@ const postSchema = new mongoose.Schema(
       enum: ['published', 'removed'],
       default: 'published',
     },
+    hearts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
   { timestamps: true }
 );
