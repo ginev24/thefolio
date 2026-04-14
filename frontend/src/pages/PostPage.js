@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import HeartButton from '../components/HeartButton';
 
 const PostPage = () => {
   const { id }     = useParams();
