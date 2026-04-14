@@ -1,8 +1,3 @@
-// backend/models/User.js
-// Defines the shape of every user document stored in MongoDB.
-// The pre-save hook automatically hashes the password before it is stored —
-// so plain-text passwords never touch the database.
-
 const mongoose = require('mongoose');
 const bcrypt   = require('bcryptjs');
 
