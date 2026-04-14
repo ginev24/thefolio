@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from '../api/axios'   // ang axios.js mo na may baseURL
+import axios from 'axios';   // ang axios.js mo na may baseURL
 
 export default function HeartButton({ postId, initialHearts, initialLiked }) {
   const [hearts, setHearts]   = useState(initialHearts ?? 0)
