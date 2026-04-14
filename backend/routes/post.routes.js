@@ -141,6 +141,7 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
     console.error('Error deleting post:', err);
     res.status(500).json({ message: 'Server error while deleting post' });
   }
+  });
 
   // POST /api/posts/:id/heart  — toggle like/unlike
 router.post('/:id/heart', authMiddleware, async (req, res) => {
