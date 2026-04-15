@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import axios from 'axios';   // ang axios.js mo na may baseURL
+import API from '../api/axios'  // ← palitan lang ito
 
 export default function HeartButton({ postId, initialHearts, initialLiked }) {
   const [hearts, setHearts]   = useState(initialHearts ?? 0)
@@ -10,7 +10,7 @@ export default function HeartButton({ postId, initialHearts, initialLiked }) {
     if (loading) return
     setLoading(true)
     try {
-      const { data } = await axios.post(`/posts/${postId}/heart`)
+      const { data } = await API.post(`/posts/${postId}/heart`)  // ← dito rin
       setHearts(data.hearts)
       setLiked(data.liked)
     } catch (err) {

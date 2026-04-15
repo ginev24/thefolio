@@ -159,7 +159,19 @@ const PostPage = () => {
         </div>
 
         <div style={{ whiteSpace:'pre-wrap', lineHeight:1.8 }}>{post.body}</div>
+         
 
+          {/* ── Heart reaction ── */}
+        <div style={{ marginTop:'16px' }}>
+        <HeartButton
+          postId={post._id}
+          initialHearts={post.hearts?.length ?? 0}
+          initialLiked={post.hearts?.some(h =>
+          (h._id || h)?.toString() === user?._id
+          ) ?? false}
+        />
+      </div>
+      
         {(isOwner || isAdmin) && (
           <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
             <Link
