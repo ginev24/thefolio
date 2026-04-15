@@ -164,14 +164,14 @@ const PostPage = () => {
           {/* ── Heart reaction ── */}
         <div style={{ marginTop:'16px' }}>
         <HeartButton
-          postId={post._id}
-          initialHearts={post.hearts?.length ?? 0}
-          initialLiked={post.hearts?.some(h =>
+            postId={post._id}
+           initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
+           initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
           (h._id || h)?.toString() === user?._id
-          ) ?? false}
-        />
+            )}
+      />
       </div>
-      
+
         {(isOwner || isAdmin) && (
           <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
             <Link
