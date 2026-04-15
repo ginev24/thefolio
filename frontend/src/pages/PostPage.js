@@ -164,34 +164,41 @@ const PostPage = () => {
          
 
           {/* ── Heart reaction ── */}
-        <div style={{ marginTop:'16px' }}>
-        <HeartButton
-            postId={post._id}
-           initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
-           initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
-          (h._id || h)?.toString() === user?._id
-            )}
-      />
-      </div>
-
-        {(isOwner || isAdmin) && (
-          <div style={{ display:'flex', gap:'12px', marginTop:'24px' }}>
-            <Link
-              to={`/edit-post/${post._id}`}
-              className='btn-primary'
-              style={{ textDecoration:'none', padding:'8px 20px' }}
-            >
-              Edit
-            </Link>
-            <button
-              className='btn-primary'
-              onClick={handleDeletePost}
-              style={{ background:'#c0392b' }}
-            >
-              Delete
-            </button>
-          </div>
-        )}
+{(isOwner || isAdmin) ? (
+  <div style={{ display:'flex', gap:'12px', marginTop:'24px', alignItems:'center' }}>
+    <HeartButton
+      postId={post._id}
+      initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
+      initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
+        (h._id || h)?.toString() === user?._id
+      )}
+    />
+    <Link
+      to={`/edit-post/${post._id}`}
+      className='btn-primary'
+      style={{ textDecoration:'none', padding:'8px 20px' }}
+    >
+      Edit
+    </Link>
+    <button
+      className='btn-primary'
+      onClick={handleDeletePost}
+      style={{ background:'#c0392b' }}
+    >
+      Delete
+    </button>
+  </div>
+) : (
+  <div style={{ marginTop:'24px' }}>
+    <HeartButton
+      postId={post._id}
+      initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
+      initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
+        (h._id || h)?.toString() === user?._id
+      )}
+    />
+  </div>
+)}
       </article>
 
       {/* ── Comments section ── */}
