@@ -149,13 +149,15 @@ router.post('/:id/heart', protect, async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const userId = req.user._id;
-    const idx = post.hearts.indexOf(userId);
+    const userId = req.user._id.toString();  // ← .toString() dito
+
+    // ← palitan ang indexOf ng findIndex + toString() comparison
+    const idx = post.hearts.findIndex(h => h.toString() === userId);
 
     if (idx === -1) {
-      post.hearts.push(userId);   // like
+      post.hearts.push(req.user._id);   // like
     } else {
-      post.hearts.splice(idx, 1); // unlike
+      post.hearts.splice(idx, 1);       // unlike
     }
 
     await post.save();
