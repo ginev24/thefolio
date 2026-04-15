@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import API from 'axios';
+import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import HeartButton from '../components/HeartButton';
 
@@ -30,9 +30,11 @@ const PostPage = () => {
       API.get(`/comments/${id}`),
     ])
       .then(([postRes, commentRes]) => {
-        setPost(postRes.data);
-        setComments(commentRes.data);
-      })
+      const postData = postRes.data;
+      if (!Array.isArray(postData.hearts)) postData.hearts = []; // ← dagdag
+      setPost(postData);
+      setComments(commentRes.data);
+    })
       .catch(() => setError('Post not found.'))
       .finally(() => setLoading(false));
   }, [id]);
