@@ -165,7 +165,27 @@ const PostPage = () => {
 
           {/* ── Heart reaction ── */}
 {(isOwner || isAdmin) ? (
-  <div style={{ display:'flex', gap:'12px', marginTop:'24px', alignItems:'center' }}>
+  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'24px' }}>
+    
+    {/* ── Edit + Delete — kaliwa ── */}
+    <div style={{ display:'flex', gap:'12px' }}>
+      <Link
+        to={`/edit-post/${post._id}`}
+        className='btn-primary'
+        style={{ textDecoration:'none', padding:'8px 20px' }}
+      >
+        Edit
+      </Link>
+      <button
+        className='btn-primary'
+        onClick={handleDeletePost}
+        style={{ background:'#c0392b' }}
+      >
+        Delete
+      </button>
+    </div>
+
+    {/* ── Heart — kanan ── */}
     <HeartButton
       postId={post._id}
       initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
@@ -173,20 +193,7 @@ const PostPage = () => {
         (h._id || h)?.toString() === user?._id
       )}
     />
-    <Link
-      to={`/edit-post/${post._id}`}
-      className='btn-primary'
-      style={{ textDecoration:'none', padding:'8px 20px' }}
-    >
-      Edit
-    </Link>
-    <button
-      className='btn-primary'
-      onClick={handleDeletePost}
-      style={{ background:'#c0392b' }}
-    >
-      Delete
-    </button>
+
   </div>
 ) : (
   <div style={{ marginTop:'24px' }}>
