@@ -20,7 +20,8 @@ connectDB();
 // ── Global Middleware ────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://thefolio-sigma.vercel.app'   
+  'https://thefolio-sigma.vercel.app'  
+  'https://thefolio-1ttk.vercel.app' 
 ];
 
 app.use(cors({
