@@ -1,10 +1,3 @@
-// backend/middleware/role.middleware.js
-// Guards that check the user's role AFTER the protect middleware has already
-// verified the JWT and set req.user.
-//
-// Usage in routes:
-//   router.post('/posts', protect, memberOrAdmin, handler)  → members & admins
-//   router.get('/admin/users', protect, adminOnly, handler) → admins only
 
 // Only admins can pass
 const adminOnly = (req, res, next) => {
