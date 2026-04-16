@@ -380,6 +380,7 @@ legend {
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
   margin-top: 8px;
+  text-color: white;
 }
 .btn-primary:hover {
   background-color: #8B5E3C;
