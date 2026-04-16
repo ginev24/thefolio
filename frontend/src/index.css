@@ -369,7 +369,7 @@ legend {
 /* ─── Buttons ───────────────────────────────────────────────────────────── */
 .btn-primary {
   background-color:  #a46e34;
-  color: #8B5E3C;
+  color: #a46e34;
   padding: 10px 28px;
   border: none;
   border-radius: 6px;
@@ -380,7 +380,6 @@ legend {
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
   margin-top: 8px;
-  text-color: white;
 }
 .btn-primary:hover {
   background-color: #8B5E3C;
