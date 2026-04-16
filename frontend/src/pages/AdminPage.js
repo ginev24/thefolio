@@ -6,16 +6,20 @@ const AdminPage = () => {
   const [posts,   setPosts]   = useState([]);
   const [tab,     setTab]     = useState('users'); // 'users' | 'posts'
   const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState([]);
+  const [tab, setTab] = useState('users');
 
   useEffect(() => {
-    Promise.all([
-      API.get('/admin/users'),
-      API.get('/admin/posts'),
-    ])
-      .then(([usersRes, postsRes]) => {
-        setUsers(usersRes.data);
-        setPosts(postsRes.data);
-      })
+   Promise.all([
+  API.get('/admin/users'),
+  API.get('/admin/posts'),
+  API.get('/messages'),
+])
+  .then(([usersRes, postsRes, msgsRes]) => {
+    setUsers(usersRes.data);
+    setPosts(postsRes.data);
+    setMessages(msgsRes.data);
+  })
       .catch(err => console.error('Admin fetch error:', err))
       .finally(() => setLoading(false));
   }, []);
@@ -70,6 +74,14 @@ const AdminPage = () => {
           style={{ background: tab === 'posts' ? 'var(--accent-dark)' : '#8B5E3C', color: '#ffffff' }}
         >
           All Posts ({posts.length})
+        </button>
+
+        <button
+          className='btn-primary'
+          onClick={() => setTab('messages')}
+          style={{ background: tab === 'messages' ? 'var(--accent-dark)' : '#8B5E3C', color: '#ffffff' }}
+        >
+          Messages ({messages.length})
         </button>
       </div>
 

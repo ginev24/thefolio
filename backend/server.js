@@ -10,6 +10,7 @@ const authRoutes    = require('./routes/auth.routes');
 const postRoutes    = require('./routes/post.routes');
 const commentRoutes = require('./routes/comment.routes');
 const adminRoutes   = require('./routes/admin.routes');
+const messageRoutes = require('./routes/message.routes');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/auth',     authRoutes);
 app.use('/api/posts',    postRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/admin',    adminRoutes);
+app.use('/api/messages', messageRoutes);
 
 // ── Health check ────────────────────────────────────────────────────
 app.get('/', (req, res) => {
