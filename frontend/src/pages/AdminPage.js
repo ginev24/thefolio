@@ -59,14 +59,14 @@ const AdminPage = () => {
         <button
           className='btn-primary'
           onClick={() => setTab('users')}
-          style={{ background: tab === 'users' ? 'var(--accent-dark)' : 'var(--accent)' }}
+          style={{ background: tab === 'users' ? 'var(--accent-dark)' : '#8B5E3C' }}
         >
           Members ({users.length})
         </button>
         <button
           className='btn-primary'
           onClick={() => setTab('posts')}
-          style={{ background: tab === 'posts' ? 'var(--accent-dark)' : 'var(--accent)' }}
+          style={{ background: tab === 'posts' ? 'var(--accent-dark)' : '#8B5E3C' }}
         >
           All Posts ({posts.length})
         </button>
