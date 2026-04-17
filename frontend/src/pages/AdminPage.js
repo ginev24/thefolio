@@ -164,6 +164,21 @@ const AdminPage = () => {
 
   const unreadCount = messages.filter(m => !m.isRead).length;
 
+  // ── Tab button style helper — works in both light & dark mode ──
+  const tabStyle = (name) => ({
+    background:  tab === name ? 'var(--accent)'      : 'transparent',
+    color:       tab === name ? '#ffffff'             : 'var(--accent)',
+    border:      '2px solid var(--accent)',
+    fontWeight:  tab === name ? 700                  : 500,
+    padding:     '8px 18px',
+    borderRadius: '6px',
+    cursor:      'pointer',
+    fontFamily:  "'Cinzel', serif",
+    fontSize:    '0.88rem',
+    letterSpacing: '0.03em',
+    transition:  'all 0.2s ease',
+  });
+
   if (loading) return (
     <main className='container'>
       <p style={{ padding: '3rem', fontStyle: 'italic' }}>Loading dashboard...</p>
@@ -181,25 +196,13 @@ const AdminPage = () => {
 
       {/* ── Tab switcher ── */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-        <button
-          className='btn-primary'
-          onClick={() => setTab('users')}
-          style={{ background: tab === 'users' ? 'var(--accent-dark)' : '#8B5E3C', color: '#ffffff' }}
-        >
+        <button style={tabStyle('users')}  onClick={() => setTab('users')}>
           Members ({users.length})
         </button>
-        <button
-          className='btn-primary'
-          onClick={() => setTab('posts')}
-          style={{ background: tab === 'posts' ? 'var(--accent-dark)' : '#8B5E3C', color: '#ffffff' }}
-        >
+        <button style={tabStyle('posts')}  onClick={() => setTab('posts')}>
           All Posts ({posts.length})
         </button>
-        <button
-          className='btn-primary'
-          onClick={() => setTab('messages')}
-          style={{ background: tab === 'messages' ? 'var(--accent-dark)' : '#8B5E3C', color: '#ffffff' }}
-        >
+        <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
           Messages ({messages.length}){unreadCount > 0 && ` • ${unreadCount} new`}
         </button>
       </div>
