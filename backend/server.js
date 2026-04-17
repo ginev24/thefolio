@@ -20,7 +20,7 @@ connectDB();
 // ── Global Middleware ────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000', 
-  'https://thefolio-ix39-git-main-ginev24s-projects.vercel.app'
+  'https://thefolio-ix39.vercel.app'
 ];
 
 app.use(cors({
