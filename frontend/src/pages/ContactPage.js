@@ -5,22 +5,17 @@ import resourcesData from '../data/resourcesData';
 // ─── Validation helper ────────────────────────────────────────────────────
 function validateForm(form) {
   const errors = {};
-
   const nameRegex = /^[a-zA-Z\s]{2,50}$/;
   if (!nameRegex.test(form.name.trim()))
     errors.name = 'Please enter a valid name (letters only, at least 2 characters).';
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(form.email.trim()))
     errors.email = 'Please enter a valid email address.';
-
   if (form.message.trim().length < 10)
     errors.message = 'Message must be at least 10 characters long.';
-
   return errors;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────
 function ContactPage() {
   const user    = JSON.parse(localStorage.getItem('user') || '{}');
   const isAdmin = user?.role === 'admin';
@@ -28,6 +23,12 @@ function ContactPage() {
   const [formData,  setFormData]  = useState({ name: '', email: '', message: '' });
   const [errors,    setErrors]    = useState({});
   const [submitted, setSubmitted] = useState(false);
+
+  // ── Check reply state ──
+  const [checkEmail,   setCheckEmail]   = useState('');
+  const [checkResults, setCheckResults] = useState(null);
+  const [checkError,   setCheckError]   = useState('');
+  const [checking,     setChecking]     = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,7 +43,6 @@ function ContactPage() {
     const newErrors = validateForm(formData);
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
-
     try {
       await API.post('/messages', formData);
       setSubmitted(true);
@@ -51,7 +51,26 @@ function ContactPage() {
     }
   };
 
-  // ── Success screen ───────────────────────────────────────────────────
+  const handleCheckReply = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(checkEmail.trim())) {
+      setCheckError('Please enter a valid email address.');
+      return;
+    }
+    setChecking(true);
+    setCheckError('');
+    setCheckResults(null);
+    try {
+      const { data } = await API.get(`/messages/reply/${encodeURIComponent(checkEmail.trim())}`);
+      setCheckResults(data);
+    } catch (err) {
+      setCheckError(err.response?.data?.message || 'No messages found for this email.');
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  // ── Success screen ──
   if (submitted) {
     return (
       <main className='container'>
@@ -88,16 +107,11 @@ function ContactPage() {
             Have questions about chess strategies or want to join a match?
             Send me a message!
           </p>
-
           <div className='form-inner'>
-
-            {/* Name */}
             <div className='form-field'>
               <label htmlFor='name'>Name:</label>
               <input
-                id='name'
-                name='name'
-                type='text'
+                id='name' name='name' type='text'
                 className='form-input'
                 placeholder='Enter your full name'
                 value={formData.name}
@@ -106,14 +120,10 @@ function ContactPage() {
               />
               <span className='error-msg'>{errors.name || ''}</span>
             </div>
-
-            {/* Email */}
             <div className='form-field'>
               <label htmlFor='email'>Email:</label>
               <input
-                id='email'
-                name='email'
-                type='email'
+                id='email' name='email' type='email'
                 className='form-input'
                 placeholder='email@example.com'
                 value={formData.email}
@@ -122,13 +132,10 @@ function ContactPage() {
               />
               <span className='error-msg'>{errors.email || ''}</span>
             </div>
-
-            {/* Message */}
             <div className='form-field'>
               <label htmlFor='message'>Message:</label>
               <textarea
-                id='message'
-                name='message'
+                id='message' name='message'
                 className='form-input'
                 rows={4}
                 placeholder='Write your message here...'
@@ -138,28 +145,98 @@ function ContactPage() {
               />
               <span className='error-msg'>{errors.message || ''}</span>
             </div>
-
             <button className='btn-primary' onClick={handleSubmit}>
               Send Message
             </button>
-
           </div>
         </section>
       ) : (
         <section className='card-warm' style={{ marginBottom: '40px', textAlign: 'center', padding: '3rem' }}>
-          <h2 style={{ fontFamily: "'Cinzel', serif", color: 'var(--accent)' }}>
-            Restricted
-          </h2>
+          <h2 style={{ fontFamily: "'Cinzel', serif", color: 'var(--accent)' }}>Restricted</h2>
           <p style={{ marginTop: '1rem', fontStyle: 'italic' }}>
             Admins cannot send contact messages.
           </p>
         </section>
       )}
 
+      {/* ── Check Reply section — hidden for admin ── */}
+      {!isAdmin && (
+        <section className='card-form' style={{ marginBottom: '40px' }}>
+          <h2 style={{ fontFamily: "'Cinzel', serif", marginBottom: '10px' }}>
+            Check Admin Reply
+          </h2>
+          <p style={{ marginBottom: '20px' }}>
+            Enter the email you used to send a message to check if the admin has replied.
+          </p>
+          <div className='form-inner'>
+            <div className='form-field'>
+              <label htmlFor='checkEmail'>Your Email:</label>
+              <input
+                id='checkEmail'
+                type='email'
+                className='form-input'
+                placeholder='email@example.com'
+                value={checkEmail}
+                onChange={e => setCheckEmail(e.target.value)}
+              />
+              {checkError && <span className='error-msg'>{checkError}</span>}
+            </div>
+            <button
+              className='btn-primary'
+              onClick={handleCheckReply}
+              disabled={checking}
+            >
+              {checking ? 'Checking...' : 'Check Reply'}
+            </button>
+          </div>
+
+          {/* Results */}
+          {checkResults && (
+            <div style={{ marginTop: '24px' }}>
+              {checkResults.map(m => (
+                <div key={m._id} style={{
+                  border: '1.5px solid var(--accent)',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '12px',
+                  background: 'var(--accent-light)'
+                }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--accent)', marginBottom: '6px' }}>
+                    <strong>Sent:</strong> {new Date(m.createdAt).toLocaleDateString()}
+                  </p>
+                  <p style={{ marginBottom: '10px' }}>
+                    <strong>Your message:</strong> {m.message}
+                  </p>
+                  {m.reply ? (
+                    <div style={{
+                      background: '#fff',
+                      border: '1px solid var(--accent)',
+                      borderRadius: '6px',
+                      padding: '10px 14px',
+                      marginTop: '8px'
+                    }}>
+                      <p style={{ fontSize: '0.82rem', color: 'var(--accent)', marginBottom: '4px' }}>
+                        <strong>Admin Reply</strong>
+                        {m.repliedAt && ` · ${new Date(m.repliedAt).toLocaleDateString()}`}
+                      </p>
+                      <p>{m.reply}</p>
+                    </div>
+                  ) : (
+                    <p style={{ fontStyle: 'italic', fontSize: '0.9rem', color: 'var(--accent)' }}>
+                      No reply yet. Please check back later.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
       {/* ── Resources table ── */}
       <section className='card-warm' style={{ marginBottom: '40px' }}>
         <h2 style={{ fontFamily: "'Cinzel', serif" }}>
-          <span style={{ fontFamily: "'Cinzel', serif" }}>C</span>hess Resources
+          Chess Resources
         </h2>
         <table className='resources-table'>
           <thead>

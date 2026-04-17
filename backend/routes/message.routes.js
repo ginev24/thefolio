@@ -52,5 +52,20 @@ router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
     res.status(500).json({ message: 'Failed to save reply.' });
   }
 });
+// GET /api/messages/reply/:email — check reply by email (public)
+router.get('/reply/:email', async (req, res) => {
+  try {
+    const messages = await Message.find({ 
+      email: req.params.email 
+    }).sort({ createdAt: -1 });
+    
+    if (!messages.length)
+      return res.status(404).json({ message: 'No messages found for this email.' });
+    
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch messages.' });
+  }
+});
 
 module.exports = router;
