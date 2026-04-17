@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,   // no two users can share an email
+      unique: true,
       lowercase: true,
     },
     password: {
@@ -35,26 +35,20 @@ const userSchema = new mongoose.Schema(
     },
     profilePic: {
       type: String,
-      default: '', // stores the filename e.g. '1719123456789-342156789.jpg'
-
-    resetPasswordToken:  { type: String },
-    resetPasswordExpire: { type: Date },
+      default: '',
     },
+    resetPasswordToken:  { type: String },   // ← labas na sa profilePic
+    resetPasswordExpire: { type: Date },     // ← labas na sa profilePic
   },
-  { timestamps: true } // adds createdAt and updatedAt automatically
+  { timestamps: true }
 );
 
-// ── Pre-save hook ──────────────────────────────────────────────────────────
-// Runs automatically every time user.save() is called.
-// Only hashes if the password field was actually changed (avoids double-hash).
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
-// ── Instance method ────────────────────────────────────────────────────────
-// Compares a plain-text password entered at login with the stored hash.
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

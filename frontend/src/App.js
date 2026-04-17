@@ -15,6 +15,7 @@ import PostPage from './pages/PostPage';
 import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import SplashPage from './pages/SplashPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 
 function Layout() {
@@ -40,6 +41,7 @@ function App() {
         <Route path='/posts/:id'   element={<PostPage />} />
         <Route path='/login'       element={<LoginPage />} />
         <Route path='/register'    element={<RegisterPage />} />
+        <Route path='/reset-password/:token' element={<ResetPasswordPage />} />
         <Route path='/profile'     element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path='/create-post' element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path='/edit-post/:id' element={<ProtectedRoute><EditPostPage /></ProtectedRoute>} />
