@@ -495,7 +495,7 @@ legend {
   cursor: pointer;
   border-radius: 8px;
   background: var(--accent);
-  color: black;
+  color: var(--white);
   font-family: 'Cinzel', serif;
   font-size: 0.78rem;
   font-weight: 700;
@@ -509,6 +509,16 @@ legend {
   border-color: var(--accent-dark);
   transform: scale(1.06);
 }
+/* Light mode (default) */
+:root .quiz-result {
+  color: white;   
+}
+
+/* Dark mode override */
+[data-theme="dark"] .quiz-result {
+  color: black;   
+}
+
 
 .quiz-result {
   margin-top: 16px;
