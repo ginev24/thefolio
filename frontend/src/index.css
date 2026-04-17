@@ -502,12 +502,20 @@ legend {
   transition: background 0.25s, transform 0.2s, border-color 0.25s;
 }
 .quiz-option:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-.quiz-option.selected {
-  background: var(--bg-color);
-  color: var(--accent-dark);
-  border-color: var(--accent-dark);
-  transform: scale(1.06);
+/* Light mode selected option */
+:root .quiz-option.selected {
+  background: black;   /* ← kulay ng background kapag light mode */
+  color: white;        /* ← kulay ng text */
+  border-color: black;
 }
+
+/* Dark mode selected option */
+[data-theme="dark"] .quiz-option.selected {
+  background: white;   /* ← kulay ng background kapag dark mode */
+  color: black;        /* ← kulay ng text */
+  border-color: white;
+}
+
 /* Light mode (default) */
 :root .quiz-result {
   color: white;   
