@@ -495,7 +495,7 @@ legend {
   cursor: pointer;
   border-radius: 8px;
   background: var(--accent);
-  color: var(--white);
+  color: black;
   font-family: 'Cinzel', serif;
   font-size: 0.78rem;
   font-weight: 700;
