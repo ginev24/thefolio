@@ -160,7 +160,7 @@ img { max-width: 100%; height: auto; display: block; }
 .navbar a:hover { background: var(--accent-light); color: var(--accent-dark); }
 .navbar a.active { 
   background: var(--accent); 
-  color: black;  /* ← palitan ng white para laging visible */
+  color: black;
 }
 
 /* Floating theme toggle button */
@@ -487,6 +487,7 @@ legend {
   justify-content: center;
 }
 
+/* ─── Quiz options — LIGHT MODE (default) ───────────────────────────────── */
 .quiz-option {
   border: 2px solid var(--accent);
   padding: 10px 20px;
@@ -494,45 +495,59 @@ legend {
   text-align: center;
   cursor: pointer;
   border-radius: 8px;
-  background: var(--accent);
+  background: #FFF8DE;        /* cream/puti — visible agad kahit walang hover */
+  color: #3A2618;             /* dark brown text */
   font-family: 'Cinzel', serif;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  transition: background 0.25s, transform 0.2s, border-color 0.25s;
+  transition: background 0.25s, color 0.25s, transform 0.2s, border-color 0.25s;
 }
-.quiz-option:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
-/* Light mode selected option */
+.quiz-option:hover {
+  background: #b08968;        /* medium brown sa hover */
+  color: #ffffff;
+  border-color: #3A2618;
+  transform: translateY(-2px);
+}
 :root .quiz-option.selected {
-  background: white;   /* ← kulay ng background kapag light mode */
-  color: white;        /* ← kulay ng text */
-  border-color: black;
+  background: #3A2618;        /* dark brown kapag pinili */
+  color: #FFF8DE;             /* cream text */
+  border-color: #3A2618;
 }
 
-/* Dark mode selected option */
+/* ─── Quiz options — DARK MODE ──────────────────────────────────────────── */
+[data-theme="dark"] .quiz-option {
+  background: #4a2e1a;        /* maitim na brown — visible sa dark bg */
+  color: #f0e6d3;             /* maliwanag na cream text */
+  border-color: #c9a07a;
+}
+[data-theme="dark"] .quiz-option:hover {
+  background: #c9a07a;        /* golden brown sa hover */
+  color: #1a0d07;             /* dark text sa hover */
+  border-color: #f0e6d3;
+  transform: translateY(-2px);
+}
 [data-theme="dark"] .quiz-option.selected {
-  background: white;   /* ← kulay ng background kapag dark mode */
-  color: black;        /* ← kulay ng text */
-  border-color: white;
+  background: #f0e6d3;        /* maliwanag kapag pinili */
+  color: #1a0d07;             /* dark text */
+  border-color: #f0e6d3;
 }
 
-/* Light mode (default) */
-:root .quiz-result {
-  color: white;   
-}
-
-/* Dark mode override */
-[data-theme="dark"] .quiz-result {
-  color: black;   
-}
-
-
+/* ─── Quiz result text ──────────────────────────────────────────────────── */
 .quiz-result {
   margin-top: 16px;
   font-weight: 700;
   font-size: 1rem;
   color: var(--text-color);
   min-height: 1.4em;
+}
+
+:root .quiz-result {
+  color: #3A2618;
+}
+
+[data-theme="dark"] .quiz-result {
+  color: #f0e6d3;
 }
 
 .quiz-score {
@@ -624,7 +639,7 @@ legend {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 160px); /* approximate header+footer heights; adjust if needed */
+  min-height: calc(100vh - 160px);
 }
 
 /* ─── Footer ────────────────────────────────────────────────────────────── */
