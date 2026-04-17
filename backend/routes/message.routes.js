@@ -1,10 +1,10 @@
 const express  = require('express');
 const router   = express.Router();
 const Message  = require('../models/Message');
-const { protect }    = require('../middleware/auth.middleware');
-const { adminOnly }  = require('../middleware/role.middleware');
+const { protect }   = require('../middleware/auth.middleware');
+const { adminOnly } = require('../middleware/role.middleware');
 
-// POST /api/messages — anyone can send (pero i-check kung hindi admin)
+// POST /api/messages — bukas sa lahat
 router.post('/', async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -22,6 +22,34 @@ router.get('/', protect, adminOnly, async (req, res) => {
     res.json(messages);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch messages.' });
+  }
+});
+
+// PATCH /api/messages/:id/read — mark as read
+router.patch('/:id/read', protect, adminOnly, async (req, res) => {
+  try {
+    const msg = await Message.findByIdAndUpdate(
+      req.params.id,
+      { isRead: true },
+      { new: true }
+    );
+    res.json(msg);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to mark as read.' });
+  }
+});
+
+// PATCH /api/messages/:id/reply — save reply
+router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
+  try {
+    const msg = await Message.findByIdAndUpdate(
+      req.params.id,
+      { reply: req.body.reply, repliedAt: new Date(), isRead: true },
+      { new: true }
+    );
+    res.json(msg);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to save reply.' });
   }
 });
 
