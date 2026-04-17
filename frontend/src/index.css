@@ -12,6 +12,10 @@
   --white:         #ffffff;
   --text-white1:     #ffffff;
   --shadow:        rgba(58, 38, 24, 0.25);
+
+  /* Fix for Submit Answer Button (Light Mode) */
+  --btn-submit-bg:   #3A2618;
+  --btn-submit-text: #ffffff;
 }
 
 [data-theme="dark"] {
@@ -29,6 +33,10 @@
   --white:         #f0e6d3;
   --nav-dark:      #FFF8DE;
   --shadow:        rgba(0, 0, 0, 0.5);
+
+  /* Fix for Submit Answer Button (Dark Mode) */
+  --btn-submit-bg:   #f0e6d3;
+  --btn-submit-text: #1a0d07;
 }
 
 /* ─── Reset ─────────────────────────────────────────────────────────────── */
@@ -251,7 +259,7 @@ blockquote {
 
 /* Hero card on home page — gradient overlay */
 .card-hero {
-  background:        linear-gradient(to right, var(--accent-light) 45%, transparent 100%),
+  background:         linear-gradient(to right, var(--accent-light) 45%, transparent 100%),
     url('./hello8.jpg') right / cover no-repeat; 
   padding: 30px;
   border-radius: 10px;
@@ -367,9 +375,10 @@ legend {
 }
 
 /* ─── Buttons ───────────────────────────────────────────────────────────── */
+/* Updated primary button to use dynamic theme variables */
 .btn-primary {
-  background-color:  #a46e34;
-  color: #4a2e1a;
+  background-color: var(--btn-submit-bg);
+  color: var(--btn-submit-text);
   padding: 10px 28px;
   border: none;
   border-radius: 6px;
@@ -380,9 +389,10 @@ legend {
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
   margin-top: 8px;
+  box-shadow: 0 2px 6px var(--shadow);
 }
 .btn-primary:hover {
-  background-color: #8B5E3C;
+  filter: brightness(1.2);
   transform: translateY(-2px);
 }
 .btn-primary:disabled {
