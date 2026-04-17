@@ -3,6 +3,8 @@ const jwt        = require('jsonwebtoken');
 const crypto     = require('crypto');
 const nodemailer = require('nodemailer');
 const User       = require('../models/User');
+const Post       = require('../models/Post');
+const Comment    = require('../models/Comment');
 const { protect } = require('../middleware/auth.middleware');
 const upload      = require('../middleware/upload');
 
@@ -88,6 +90,46 @@ router.put('/change-password', protect, async (req, res) => {
     user.password = newPassword;
     await user.save();
     res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ── DELETE /api/auth/delete-account ──────────────────────────────────────
+router.delete('/delete-account', protect, async (req, res) => {
+  const { password } = req.body;
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user)
+      return res.status(404).json({ message: 'User not found' });
+
+    // Verify password before deleting
+    const match = await user.matchPassword(password);
+    if (!match)
+      return res.status(400).json({ message: 'Incorrect password' });
+
+    // Prevent admin from deleting their own account
+    if (user.role === 'admin')
+      return res.status(403).json({ message: 'Admin accounts cannot be self-deleted' });
+
+    const userId = user._id;
+
+    // 1. Delete all posts by this user
+    await Post.deleteMany({ author: userId });
+
+    // 2. Delete all top-level comments by this user
+    await Comment.deleteMany({ author: userId });
+
+    // 3. Remove replies this user made on other people's comments
+    await Comment.updateMany(
+      { 'replies.author': userId },
+      { $pull: { replies: { author: userId } } }
+    );
+
+    // 4. Delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Account deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
