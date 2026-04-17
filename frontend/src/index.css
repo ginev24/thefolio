@@ -504,7 +504,7 @@ legend {
 .quiz-option:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
 /* Light mode selected option */
 :root .quiz-option.selected {
-  background: black;   /* ← kulay ng background kapag light mode */
+  background: white;   /* ← kulay ng background kapag light mode */
   color: white;        /* ← kulay ng text */
   border-color: black;
 }
