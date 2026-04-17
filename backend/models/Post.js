@@ -1,7 +1,3 @@
-// backend/models/Post.js
-// Each post document stores the title, body, an optional image URL,
-// and a reference to the User who authored it.
-// { ref: 'User' } lets us call .populate('author') to get the full user object.
 
 const mongoose = require('mongoose');
 

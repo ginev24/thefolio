@@ -86,7 +86,7 @@ const HomePage = () => {
           <h2 style={{ fontFamily:"'Cinzel', serif", borderBottom:'3px solid var(--accent)', paddingBottom:'8px', margin:0 }}>Latest Chess Posts</h2>
           <p style={{ margin:0, color:'var(--text-color)', fontStyle:'italic' }}>Explore the latest community posts and chess insights.</p>
         </div>
-        {user && <Link to='/create-post' className='btn-primary' style={{ textDecoration:'none' }}>+ Write a Post</Link>}
+        {user && ( <Link to='/create-post' className='btn-primary' style={{ textDecoration: 'none', background: '#8B5E3C', color: '#ffffff', }} > + Write a Post </Link> )}
       </section>
 
       {posts.length === 0 && (
