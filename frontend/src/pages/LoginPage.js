@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios'; // o gamitin ang iyong authService
+import API from '../api/axios';
 
 const ForgotPasswordModal = ({ onClose }) => {
   const [email,   setEmail]   = useState('');
@@ -9,17 +9,17 @@ const ForgotPasswordModal = ({ onClose }) => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = async () => {
-    if (!email) return;
-    setStatus('loading');
-    try {
-      await axios.post('/api/auth/forgot-password', { email });
-      setStatus('success');
-      setMessage('Reset link sent! Check your email inbox.');
-    } catch (err) {
-      setStatus('error');
-      setMessage(err.response?.data?.message || 'Something went wrong. Try again.');
-    }
-  };
+  if (!email) return;
+  setStatus('loading');
+  try {
+    await API.post('/auth/forgot-password', { email });  // ← palitan ito
+    setStatus('success');
+    setMessage('Reset link sent! Check your email inbox.');
+  } catch (err) {
+    setStatus('error');
+    setMessage(err.response?.data?.message || 'Something went wrong. Try again.');
+  }
+};
 
   const handleClose = () => {
     setEmail('');
