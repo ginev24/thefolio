@@ -18,28 +18,26 @@ const PostPage = () => {
   const [commentErr,  setCommentErr]  = useState('');
 
   // reply state
-  const [replyingTo,   setReplyingTo]   = useState(null);   // comment._id being replied to
+  const [replyingTo,   setReplyingTo]   = useState(null);
   const [replyBody,    setReplyBody]    = useState('');
   const [replyErr,     setReplyErr]     = useState('');
-  const [visibleReplies, setVisibleReplies] = useState({}); // { [commentId]: bool }
+  const [visibleReplies, setVisibleReplies] = useState({});
 
-  // Fetch post and its comments when the page loads
   useEffect(() => {
     Promise.all([
       API.get(`/posts/${id}`),
       API.get(`/comments/${id}`),
     ])
       .then(([postRes, commentRes]) => {
-      const postData = postRes.data;
-      if (!Array.isArray(postData.hearts)) postData.hearts = []; // ← dagdag
-      setPost(postData);
-      setComments(commentRes.data);
-    })
+        const postData = postRes.data;
+        if (!Array.isArray(postData.hearts)) postData.hearts = [];
+        setPost(postData);
+        setComments(commentRes.data);
+      })
       .catch(() => setError('Post not found.'))
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Add a new top-level comment
   const handleAddComment = async () => {
     if (!commentBody.trim()) { setCommentErr('Comment cannot be empty.'); return; }
     setCommentErr('');
@@ -52,13 +50,11 @@ const PostPage = () => {
     }
   };
 
-  // Submit a reply to a comment
   const handleAddReply = async (commentId) => {
     if (!replyBody.trim()) { setReplyErr('Reply cannot be empty.'); return; }
     setReplyErr('');
     try {
       const { data } = await API.post(`/comments/${commentId}/replies`, { body: replyBody });
-      // Merge the new reply into the matching comment's replies array
       setComments(prev =>
         prev.map(c =>
           c._id === commentId
@@ -68,14 +64,12 @@ const PostPage = () => {
       );
       setReplyBody('');
       setReplyingTo(null);
-      // Auto-expand replies so the user sees their new reply
       setVisibleReplies(prev => ({ ...prev, [commentId]: true }));
     } catch (err) {
       setReplyErr(err.response?.data?.message || 'Failed to post reply.');
     }
   };
 
-  // Delete a top-level comment
   const handleDeleteComment = async (commentId) => {
     try {
       await API.delete(`/comments/${commentId}`);
@@ -85,7 +79,6 @@ const PostPage = () => {
     }
   };
 
-  // Delete a reply
   const handleDeleteReply = async (commentId, replyId) => {
     try {
       await API.delete(`/comments/${commentId}/replies/${replyId}`);
@@ -101,7 +94,6 @@ const PostPage = () => {
     }
   };
 
-  // Delete the whole post
   const handleDeletePost = async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
     try {
@@ -122,17 +114,22 @@ const PostPage = () => {
   };
 
   const cloudImg = (image) => {
-  if (!image) return null;
-  if (image.startsWith('http')) return image;
-  const publicId = image.replace(/^uploads\//, '');
-  return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${publicId}`;
-};
+    if (!image) return null;
+    if (image.startsWith('http')) return image;
+    const publicId = image.replace(/^uploads\//, '');
+    return `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${publicId}`;
+  };
 
   if (loading) return <main className='container'><p style={{ padding:'3rem', fontStyle:'italic' }}>Loading post...</p></main>;
   if (error)   return <main className='container'><p className='error-msg' style={{ padding:'2rem' }}>{error}</p></main>;
 
   const isOwner = user && post.author?._id === user._id;
   const isAdmin = user && user.role === 'admin';
+
+  // Edit — sariling post lang (owner, kahit admin o member)
+  // Delete — owner OR admin
+  const canEdit   = isOwner;
+  const canDelete = isOwner || isAdmin;
 
   return (
     <main className='container'>
@@ -161,51 +158,42 @@ const PostPage = () => {
         </div>
 
         <div style={{ whiteSpace:'pre-wrap', lineHeight:1.8 }}>{post.body}</div>
-         
 
-          {/* ── Heart reaction ── */}
-{(isOwner || isAdmin) ? (
-  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'24px' }}>
-    
-    {/* ── Edit + Delete — kaliwa ── */}
-    <div style={{ display:'flex', gap:'12px' }}>
-      <Link
-        to={`/edit-post/${post._id}`}
-        className='btn-primary'
-        style={{ textDecoration:'none', padding:'8px 20px', color:'white' }}
-      >
-        Edit
-      </Link>
-      <button
-        className='btn-primary'
-        onClick={handleDeletePost}
-        style={{ background:'#c0392b' }}
-      >
-        Delete
-      </button>
-    </div>
+        {/* ── Actions row ── */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'24px' }}>
 
-    {/* ── Heart — kanan ── */}
-    <HeartButton
-      postId={post._id}
-      initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
-      initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
-        (h._id || h)?.toString() === user?._id
-      )}
-    />
+          {/* Edit + Delete buttons — left side */}
+          <div style={{ display:'flex', gap:'12px' }}>
+            {canEdit && (
+              <Link
+                to={`/edit-post/${post._id}`}
+                className='btn-primary'
+                style={{ textDecoration:'none', padding:'8px 20px', color:'white' }}
+              >
+                Edit
+              </Link>
+            )}
+            {canDelete && (
+              <button
+                className='btn-primary'
+                onClick={handleDeletePost}
+                style={{ background:'#c0392b' }}
+              >
+                Delete
+              </button>
+            )}
+          </div>
 
-  </div>
-) : (
-  <div style={{ marginTop:'24px' }}>
-    <HeartButton
-      postId={post._id}
-      initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
-      initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
-        (h._id || h)?.toString() === user?._id
-      )}
-    />
-  </div>
-)}
+          {/* Heart — right side */}
+          <HeartButton
+            postId={post._id}
+            initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
+            initialLiked={Array.isArray(post.hearts) && post.hearts.some(h =>
+              (h._id || h)?.toString() === user?._id
+            )}
+          />
+        </div>
+
       </article>
 
       {/* ── Comments section ── */}
@@ -228,7 +216,6 @@ const PostPage = () => {
           return (
             <div key={comment._id} style={{ borderBottom:'1px solid var(--accent-light)', paddingBottom:'14px', marginBottom:'14px' }}>
 
-              {/* ── Comment header ── */}
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:'8px', fontSize:'0.88rem', color:'var(--accent)' }}>
                   {comment.author?.profilePic && (
@@ -249,10 +236,8 @@ const PostPage = () => {
                 )}
               </div>
 
-              {/* ── Comment body ── */}
               <p style={{ marginTop:'6px' }}>{comment.body}</p>
 
-              {/* ── Action row: Reply + Show/Hide Replies ── */}
               <div style={{ display:'flex', gap:'14px', marginTop:'6px', fontSize:'0.82rem' }}>
                 {user && (
                   <button
@@ -275,7 +260,6 @@ const PostPage = () => {
                 )}
               </div>
 
-              {/* ── Inline reply box ── */}
               {isReplying && (
                 <div style={{ marginTop:'10px', paddingLeft:'20px', borderLeft:'2px solid var(--accent-light)' }}>
                   <textarea
@@ -302,7 +286,6 @@ const PostPage = () => {
                 </div>
               )}
 
-              {/* ── Replies list ── */}
               {repliesVisible && replies.length > 0 && (
                 <div style={{ marginTop:'12px', paddingLeft:'20px', borderLeft:'2px solid var(--accent-light)' }}>
                   {replies.map(reply => (
@@ -336,12 +319,11 @@ const PostPage = () => {
           );
         })}
 
-        {/* ── Add top-level comment ── */}
         {user ? (
           <div style={{ marginTop:'16px' }}>
             <label style={{ fontFamily:"'Cinzel', serif", fontSize:'0.85rem', fontWeight:700, display:'block', whiteSpace:'nowrap' }}>
-  Leave a Comment:
-</label>
+              Leave a Comment:
+            </label>
             <textarea
               className='form-input'
               rows={3}
