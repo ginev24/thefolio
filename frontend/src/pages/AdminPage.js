@@ -167,7 +167,7 @@ const AdminPage = () => {
   // ── Tab button style helper — works in both light & dark mode ──
   const tabStyle = (name) => ({
     background:   tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
-    color:        tab === name ? '#ffffff'        : 'var(--accent)',
+    color:        tab === name ? '#3b1f0a'       : 'var(--accent)',
     border:       '2px solid var(--accent)',
     fontWeight:   tab === name ? 700             : 500,
     padding:      '8px 18px',
