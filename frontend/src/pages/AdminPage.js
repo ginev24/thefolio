@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import API from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
 // ── MessageRow component ──────────────────────────────────────────────────
 const MessageRow = ({ m, onRead, onReply, onDelete }) => {
@@ -208,6 +209,7 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
 
 // ── AdminPage component ───────────────────────────────────────────────────
 const AdminPage = () => {
+  const { user: currentUser } = useAuth();
   const [users,    setUsers]    = useState([]);
   const [posts,    setPosts]    = useState([]);
   const [messages, setMessages] = useState([]);
@@ -416,13 +418,26 @@ const AdminPage = () => {
                   </td>
                   <td>
                     {p.status === 'published' && (
-                      <button
-                        className='btn-primary'
-                        onClick={() => removePost(p._id)}
-                        style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#c0392b', color: '#fff' }}
-                      >
-                        Remove
-                      </button>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {/* Edit — only if admin is the author */}
+                        {p.author?._id === currentUser?._id && (
+                          <a
+                            href={`/edit/${p._id}`}
+                            className='btn-primary'
+                            style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#2980b9', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}
+                          >
+                            Edit
+                          </a>
+                        )}
+                        {/* Remove — available to all admins */}
+                        <button
+                          className='btn-primary'
+                          onClick={() => removePost(p._id)}
+                          style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#c0392b', color: '#fff' }}
+                        >
+                          Remove
+                        </button>
+                      </div>
                     )}
                     {p.status === 'removed' && (
                       <span style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-secondary)' }}>

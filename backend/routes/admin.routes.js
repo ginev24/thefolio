@@ -49,7 +49,7 @@ router.put('/users/:id/status', async (req, res) => {
 router.get('/posts', async (req, res) => {
   try {
     const posts = await Post.find()
-      .populate('author', 'name email')
+      .populate('author', '_id name email')
       .sort({ createdAt: -1 });
     res.json(posts);
   } catch (err) {
