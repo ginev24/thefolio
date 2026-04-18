@@ -40,6 +40,12 @@ function ContactPage() {
   };
 
   const handleSubmit = async () => {
+    // ✅ Double-check: block admin even if they bypass the hidden form
+    if (isAdmin) {
+      alert('Admins are not allowed to send contact messages.');
+      return;
+    }
+
     const newErrors = validateForm(formData);
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
