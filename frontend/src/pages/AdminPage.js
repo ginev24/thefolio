@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import API from '../api/axios';
 
 // ── MessageRow component ──────────────────────────────────────────────────
-const MessageRow = ({ m, onRead, onReply }) => {
+const MessageRow = ({ m, onRead, onReply, onDelete }) => {
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState(m.reply || '');
   const [saving,    setSaving]    = useState(false);
+  const [deleting,  setDeleting]  = useState(false);
 
   const markRead = async () => {
     if (m.isRead) return;
@@ -31,6 +32,19 @@ const MessageRow = ({ m, onRead, onReply }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this message? This cannot be undone.')) return;
+    setDeleting(true);
+    try {
+      await API.delete(`/messages/${m._id}`);
+      onDelete(m._id);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete message.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <>
       <tr style={{ background: m.isRead ? 'transparent' : 'rgba(176,137,104,0.15)' }}>
@@ -48,7 +62,7 @@ const MessageRow = ({ m, onRead, onReply }) => {
         <td>{m.email}</td>
         <td>{m.message}</td>
         <td>{new Date(m.createdAt).toLocaleDateString()}</td>
-      <td>
+        <td>
           <span style={{
             padding: '3px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700,
             background: m.isRead ? '#27ae60' : '#e67e22',
@@ -84,6 +98,15 @@ const MessageRow = ({ m, onRead, onReply }) => {
               style={{ padding: '5px 12px', fontSize: '0.78rem', background: '#2980b9', color: '#fff' }}
             >
               {m.reply ? 'Edit Reply' : 'Reply'}
+            </button>
+            {/* ── DELETE BUTTON ── */}
+            <button
+              className='btn-primary'
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{ padding: '5px 12px', fontSize: '0.78rem', background: '#c0392b', color: '#fff' }}
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
             </button>
           </div>
         </td>
@@ -191,23 +214,28 @@ const AdminPage = () => {
     }
   };
 
+  // ── Remove deleted message from state ──
+  const deleteMessage = (messageId) => {
+    setMessages(prev => prev.filter(m => m._id !== messageId));
+  };
+
   const unreadCount = messages.filter(m => !m.isRead).length;
 
-  // ── Tab button style helper — works in both light & dark mode ──
-const tabStyle = (name) => ({
-  background:   tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
-  color:        tab === name ? '#ffffff'        : 'black',  
-  border:       '2px solid var(--accent)',
-  fontWeight:   tab === name ? 850             : 700,
-  padding:      '8px 18px',
-  borderRadius: '6px',
-  cursor:       'pointer',
-  fontFamily:   "'Cinzel', serif",
-  fontSize:     '0.88rem',
-  letterSpacing:'0.03em',
-  transition:   'all 0.2s ease',
-  opacity:      tab === name ? 1 : 0.75,
-});
+  // ── Tab button style helper ──
+  const tabStyle = (name) => ({
+    background:    tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
+    color:         tab === name ? '#ffffff'        : 'black',
+    border:        '2px solid var(--accent)',
+    fontWeight:    tab === name ? 850              : 700,
+    padding:       '8px 18px',
+    borderRadius:  '6px',
+    cursor:        'pointer',
+    fontFamily:    "'Cinzel', serif",
+    fontSize:      '0.88rem',
+    letterSpacing: '0.03em',
+    transition:    'all 0.2s ease',
+    opacity:       tab === name ? 1 : 0.75,
+  });
 
   if (loading) return (
     <main className='container'>
@@ -226,10 +254,10 @@ const tabStyle = (name) => ({
 
       {/* ── Tab switcher ── */}
       <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-        <button style={tabStyle('users')}  onClick={() => setTab('users')}>
+        <button style={tabStyle('users')}    onClick={() => setTab('users')}>
           Members ({users.length})
         </button>
-        <button style={tabStyle('posts')}  onClick={() => setTab('posts')}>
+        <button style={tabStyle('posts')}    onClick={() => setTab('posts')}>
           All Posts ({posts.length})
         </button>
         <button style={tabStyle('messages')} onClick={() => setTab('messages')}>
@@ -312,8 +340,9 @@ const tabStyle = (name) => ({
                 <MessageRow
                   key={m._id}
                   m={m}
-                  onRead={(updated) => setMessages(prev => prev.map(x => x._id === updated._id ? updated : x))}
+                  onRead={(updated)  => setMessages(prev => prev.map(x => x._id === updated._id ? updated : x))}
                   onReply={(updated) => setMessages(prev => prev.map(x => x._id === updated._id ? updated : x))}
+                  onDelete={deleteMessage}
                 />
               ))}
             </tbody>
