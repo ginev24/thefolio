@@ -169,7 +169,7 @@ const tabStyle = (name) => ({
   background:   tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
   color:        tab === name ? '#ffffff'        : 'black',  
   border:       '2px solid var(--accent)',
-  fontWeight:   tab === name ? 700             : 500,
+  fontWeight:   tab === name ? 850             : 700,
   padding:      '8px 18px',
   borderRadius: '6px',
   cursor:       'pointer',
