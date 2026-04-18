@@ -1,11 +1,3 @@
-// backend/routes/admin.routes.js
-// All routes here require BOTH a valid token AND admin role.
-// router.use(protect, adminOnly) applies both guards to every route below it.
-//
-//  GET /api/admin/users              → list all non-admin members
-//  PUT /api/admin/users/:id/status   → toggle member active / inactive
-//  GET /api/admin/posts              → list ALL posts including removed ones
-//  PUT /api/admin/posts/:id/remove   → mark a post as removed (inappropriate)
 
 const express       = require('express');
 const User          = require('../models/User');

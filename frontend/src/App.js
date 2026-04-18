@@ -16,6 +16,7 @@ import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
 import SplashPage from './pages/SplashPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import UserReplyPage from './pages/UserReplyPage';
 
 
 function Layout() {
@@ -46,6 +47,7 @@ function App() {
         <Route path='/create-post' element={<ProtectedRoute><CreatePostPage /></ProtectedRoute>} />
         <Route path='/edit-post/:id' element={<ProtectedRoute><EditPostPage /></ProtectedRoute>} />
         <Route path='/admin'       element={<ProtectedRoute role='admin'><AdminPage /></ProtectedRoute>} />
+        <Route path="/reply/:id" element={<UserReplyPage />} />
         <Route path='*' element={<NotFoundPage />} />
       </Route>
       {/* Fallback: redirect unknown root to home */}

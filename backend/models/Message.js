@@ -7,6 +7,8 @@ const messageSchema = new mongoose.Schema({
   isRead:    { type: Boolean, default: false },
   reply:     { type: String, default: '' },
   repliedAt: { type: Date },
+  userReply:  { type: String, default: '' },      
+  userRepliedAt: { type: Date }, 
 }, { timestamps: true });
 
 module.exports = mongoose.model('Message', messageSchema);

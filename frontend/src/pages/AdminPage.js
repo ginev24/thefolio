@@ -48,7 +48,7 @@ const MessageRow = ({ m, onRead, onReply }) => {
         <td>{m.email}</td>
         <td>{m.message}</td>
         <td>{new Date(m.createdAt).toLocaleDateString()}</td>
-        <td>
+      <td>
           <span style={{
             padding: '3px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 700,
             background: m.isRead ? '#27ae60' : '#e67e22',
@@ -56,7 +56,17 @@ const MessageRow = ({ m, onRead, onReply }) => {
           }}>
             {m.isRead ? 'Read' : 'Unread'}
           </span>
+          {m.userReply && (
+            <span style={{
+              marginTop: '4px', display: 'block',
+              padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700,
+              background: '#2ecc71', color: 'white'
+            }}>
+              User Replied
+            </span>
+          )}
         </td>
+
         <td>
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {!m.isRead && (
@@ -83,6 +93,25 @@ const MessageRow = ({ m, onRead, onReply }) => {
       {showReply && (
         <tr>
           <td colSpan={6} style={{ padding: '12px 16px', background: 'var(--accent-light)' }}>
+            {m.userReply && (
+              <div style={{
+                background: '#eaf4ea',
+                border: '1px solid #27ae60',
+                borderRadius: '6px',
+                padding: '10px 14px',
+                marginBottom: '10px'
+              }}>
+                <p style={{ margin: 0, fontWeight: 700, color: '#27ae60', fontSize: '0.85rem' }}>
+                  User's Reply:
+                </p>
+                <p style={{ margin: '4px 0 0' }}>{m.userReply}</p>
+                {m.userRepliedAt && (
+                  <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#888' }}>
+                    {new Date(m.userRepliedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
+            )}
             {m.reply && (
               <p style={{ fontSize: '0.85rem', fontStyle: 'italic', marginBottom: '8px' }}>
                 Previous reply: <strong>{m.reply}</strong>
