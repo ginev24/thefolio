@@ -165,20 +165,20 @@ const AdminPage = () => {
   const unreadCount = messages.filter(m => !m.isRead).length;
 
   // ── Tab button style helper — works in both light & dark mode ──
-  const tabStyle = (name) => ({
-    background:   tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
-    color:        tab === name ? '#3b1f0a'       : 'var(--accent)',
-    border:       '2px solid var(--accent)',
-    fontWeight:   tab === name ? 700             : 500,
-    padding:      '8px 18px',
-    borderRadius: '6px',
-    cursor:       'pointer',
-    fontFamily:   "'Cinzel', serif",
-    fontSize:     '0.88rem',
-    letterSpacing:'0.03em',
-    transition:   'all 0.2s ease',
-    opacity:      tab === name ? 1 : 0.75,
-  });
+const tabStyle = (name) => ({
+  background:   tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
+  color:        tab === name ? '#ffffff'        : '#3b1f0a',  
+  border:       '2px solid var(--accent)',
+  fontWeight:   tab === name ? 700             : 500,
+  padding:      '8px 18px',
+  borderRadius: '6px',
+  cursor:       'pointer',
+  fontFamily:   "'Cinzel', serif",
+  fontSize:     '0.88rem',
+  letterSpacing:'0.03em',
+  transition:   'all 0.2s ease',
+  opacity:      tab === name ? 1 : 0.75,
+});
 
   if (loading) return (
     <main className='container'>
