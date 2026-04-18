@@ -104,7 +104,6 @@ router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
       <p style="margin: 6px 0 0;">${req.body.reply}</p>
     </div>
 
-    <!-- ✅ NEW: Reply button linking to your frontend -->
     <div style="text-align: center; margin-top: 24px;">
       <a href="${process.env.FRONTEND_URL}/reply/${msg._id}" 
          style="background: #b08968; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-family: 'Cinzel', serif; font-weight: bold;">
@@ -121,6 +120,17 @@ router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
   } catch (err) {
     console.error('Reply error:', err);
     res.status(500).json({ message: 'Failed to save reply.' });
+  }
+});
+
+// DELETE /api/messages/:id — admin only
+router.delete('/:id', protect, adminOnly, async (req, res) => {
+  try {
+    const msg = await Message.findByIdAndDelete(req.params.id);
+    if (!msg) return res.status(404).json({ message: 'Message not found.' });
+    res.json({ message: 'Message deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete message.' });
   }
 });
 
