@@ -172,7 +172,7 @@ const PostPage = () => {
       <Link
         to={`/edit-post/${post._id}`}
         className='btn-primary'
-        style={{ textDecoration:'none', padding:'8px 20px' }}
+        style={{ textDecoration:'none', padding:'8px 20px', color:'white' }}
       >
         Edit
       </Link>
