@@ -116,30 +116,64 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
       {showReply && (
         <tr>
           <td colSpan={6} style={{ padding: '12px 16px', background: 'var(--accent-light)' }}>
-            {m.userReply && (
-              <div style={{
-                background: '#eaf4ea',
-                border: '1px solid #27ae60',
-                borderRadius: '6px',
-                padding: '10px 14px',
-                marginBottom: '10px'
-              }}>
-                <p style={{ margin: 0, fontWeight: 700, color: '#27ae60', fontSize: '0.85rem' }}>
-                  User's Reply:
-                </p>
-                <p style={{ margin: '4px 0 0' }}>{m.userReply}</p>
-                {m.userRepliedAt && (
-                  <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#888' }}>
-                    {new Date(m.userRepliedAt).toLocaleString()}
+
+            {/* ── Conversation thread ── */}
+            <div style={{ marginBottom: '14px' }}>
+
+              {/* Admin's previous reply */}
+              {m.reply && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
+                  <div style={{
+                    maxWidth: '70%',
+                    background: '#2980b9',
+                    color: '#fff',
+                    borderRadius: '12px 12px 2px 12px',
+                    padding: '10px 14px',
+                  }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, opacity: 0.85, marginBottom: '4px' }}>
+                      You (Admin)
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>{m.reply}</p>
+                    {m.repliedAt && (
+                      <p style={{ margin: '6px 0 0', fontSize: '0.72rem', opacity: 0.75, textAlign: 'right' }}>
+                        {new Date(m.repliedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* User's reply */}
+              {m.userReply ? (
+                <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
+                  <div style={{
+                    maxWidth: '70%',
+                    background: '#fff',
+                    border: '1.5px solid #27ae60',
+                    borderRadius: '12px 12px 12px 2px',
+                    padding: '10px 14px',
+                  }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#27ae60', marginBottom: '4px' }}>
+                      {m.name} (User)
+                    </p>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#333' }}>{m.userReply}</p>
+                    {m.userRepliedAt && (
+                      <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#888' }}>
+                        {new Date(m.userRepliedAt).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                m.reply && (
+                  <p style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#888', textAlign: 'center', margin: '4px 0 12px' }}>
+                    Waiting for user's reply...
                   </p>
-                )}
-              </div>
-            )}
-            {m.reply && (
-              <p style={{ fontSize: '0.85rem', fontStyle: 'italic', marginBottom: '8px' }}>
-                Previous reply: <strong>{m.reply}</strong>
-              </p>
-            )}
+                )
+              )}
+            </div>
+
+            {/* ── Reply textarea ── */}
             <textarea
               className='form-input'
               rows={3}
