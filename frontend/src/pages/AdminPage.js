@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 // ── MessageRow component ──────────────────────────────────────────────────
 const MessageRow = ({ m, onRead, onReply, onDelete }) => {
   const [showReply, setShowReply] = useState(false);
-  const [replyText, setReplyText] = useState(m.reply || '');
+  const [replyText, setReplyText] = useState('');
   const [saving,    setSaving]    = useState(false);
   const [deleting,  setDeleting]  = useState(false);
 
@@ -26,6 +26,7 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
     try {
       const { data } = await API.patch(`/messages/${m._id}/reply`, { reply: replyText });
       onReply(data);
+      setReplyText('');
       setShowReply(false);
     } catch (err) {
       alert('Failed to save reply.');
@@ -46,6 +47,12 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
       setDeleting(false);
     }
   };
+
+  // Determine last sender for "Waiting..." indicator
+  const lastThread = m.threads?.length > 0 ? m.threads[m.threads.length - 1] : null;
+  const hasUserReplied = m.threads?.length > 0
+    ? lastThread?.sender === 'user'
+    : !!m.userReply;
 
   return (
     <>
@@ -72,7 +79,7 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
           }}>
             {m.isRead ? 'Read' : 'Unread'}
           </span>
-          {m.userReply && (
+          {hasUserReplied && (
             <span style={{
               marginTop: '4px', display: 'block',
               padding: '3px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700,
@@ -99,9 +106,8 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
               onClick={() => setShowReply(!showReply)}
               style={{ padding: '5px 12px', fontSize: '0.78rem', background: '#2980b9', color: '#fff' }}
             >
-              {m.reply ? 'Edit Reply' : 'Reply'}
+              {showReply ? 'Close' : (m.threads?.length > 0 || m.reply) ? 'View / Reply' : 'Reply'}
             </button>
-            {/* ── DELETE BUTTON ── */}
             <button
               className='btn-primary'
               onClick={handleDelete}
@@ -114,64 +120,119 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
         </td>
       </tr>
 
-      {/* Reply row */}
+      {/* ── Expanded conversation row ── */}
       {showReply && (
         <tr>
-          <td colSpan={6} style={{ padding: '12px 16px', background: 'var(--accent-light)' }}>
+          <td colSpan={6} style={{ padding: '16px', background: 'var(--accent-light)' }}>
 
             {/* ── Conversation thread ── */}
-            <div style={{ marginBottom: '14px' }}>
+            <div style={{
+              marginBottom: '14px',
+              maxHeight: '400px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              padding: '8px',
+              background: 'rgba(255,255,255,0.4)',
+              borderRadius: '8px',
+            }}>
 
-              {/* Admin's previous reply */}
-              {m.reply && (
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10px' }}>
-                  <div style={{
-                    maxWidth: '70%',
-                    background: '#2980b9',
-                    color: '#fff',
-                    borderRadius: '12px 12px 2px 12px',
-                    padding: '10px 14px',
-                  }}>
-                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, opacity: 0.85, marginBottom: '4px' }}>
-                      You (Admin)
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>{m.reply}</p>
-                    {m.repliedAt && (
-                      <p style={{ margin: '6px 0 0', fontSize: '0.72rem', opacity: 0.75, textAlign: 'right' }}>
-                        {new Date(m.repliedAt).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
+              {/* Original message ng user */}
+              <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <div style={{
+                  maxWidth: '70%',
+                  background: '#fff',
+                  border: '1.5px solid #b08968',
+                  borderRadius: '12px 12px 12px 2px',
+                  padding: '10px 14px',
+                }}>
+                  <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#b08968', marginBottom: '4px' }}>
+                    {m.name} (Original Message)
+                  </p>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: '#333' }}>{m.message}</p>
+                  <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#888' }}>
+                    {new Date(m.createdAt).toLocaleString()}
+                  </p>
                 </div>
+              </div>
+
+              {/* ── NEW: Continuous threads array ── */}
+              {m.threads && m.threads.length > 0 ? (
+                m.threads.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: t.sender === 'admin' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{
+                      maxWidth: '70%',
+                      background: t.sender === 'admin' ? '#2980b9' : '#fff',
+                      color: t.sender === 'admin' ? '#fff' : '#333',
+                      border: t.sender === 'admin' ? 'none' : '1.5px solid #27ae60',
+                      borderRadius: t.sender === 'admin' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                      padding: '10px 14px',
+                    }}>
+                      <p style={{
+                        margin: 0, fontSize: '0.75rem', fontWeight: 700, marginBottom: '4px',
+                        color: t.sender === 'admin' ? 'rgba(255,255,255,0.85)' : '#27ae60'
+                      }}>
+                        {t.sender === 'admin' ? 'You (Admin)' : `${m.name} (User)`}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.9rem' }}>{t.text}</p>
+                      <p style={{
+                        margin: '6px 0 0', fontSize: '0.72rem',
+                        color: t.sender === 'admin' ? 'rgba(255,255,255,0.7)' : '#888',
+                        textAlign: t.sender === 'admin' ? 'right' : 'left'
+                      }}>
+                        {new Date(t.sentAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                /* ── Fallback para sa lumang messages na wala pang threads ── */
+                <>
+                  {m.reply && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <div style={{
+                        maxWidth: '70%', background: '#2980b9', color: '#fff',
+                        borderRadius: '12px 12px 2px 12px', padding: '10px 14px',
+                      }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, opacity: 0.85, marginBottom: '4px' }}>
+                          You (Admin)
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.9rem' }}>{m.reply}</p>
+                        {m.repliedAt && (
+                          <p style={{ margin: '6px 0 0', fontSize: '0.72rem', opacity: 0.75, textAlign: 'right' }}>
+                            {new Date(m.repliedAt).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {m.userReply && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                      <div style={{
+                        maxWidth: '70%', background: '#fff', border: '1.5px solid #27ae60',
+                        borderRadius: '12px 12px 12px 2px', padding: '10px 14px',
+                      }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#27ae60', marginBottom: '4px' }}>
+                          {m.name} (User)
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: '#333' }}>{m.userReply}</p>
+                        {m.userRepliedAt && (
+                          <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#888' }}>
+                            {new Date(m.userRepliedAt).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
 
-              {/* User's reply */}
-              {m.userReply ? (
-                <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
-                  <div style={{
-                    maxWidth: '70%',
-                    background: '#fff',
-                    border: '1.5px solid #27ae60',
-                    borderRadius: '12px 12px 12px 2px',
-                    padding: '10px 14px',
-                  }}>
-                    <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, color: '#27ae60', marginBottom: '4px' }}>
-                      {m.name} (User)
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: '#333' }}>{m.userReply}</p>
-                    {m.userRepliedAt && (
-                      <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#888' }}>
-                        {new Date(m.userRepliedAt).toLocaleString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                m.reply && (
-                  <p style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#888', textAlign: 'center', margin: '4px 0 12px' }}>
-                    Waiting for user's reply...
-                  </p>
-                )
+              {/* Waiting indicator — kapag ang huli ay admin ang nagsend */}
+              {lastThread?.sender === 'admin' && (
+                <p style={{ fontSize: '0.8rem', fontStyle: 'italic', color: '#888', textAlign: 'center', margin: '4px 0' }}>
+                  Waiting for user's reply...
+                </p>
               )}
             </div>
 
@@ -191,7 +252,7 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
                 disabled={saving}
                 style={{ background: '#2980b9', color: '#fff' }}
               >
-                {saving ? 'Saving...' : 'Save Reply'}
+                {saving ? 'Saving...' : 'Send Reply'}
               </button>
               <button
                 className='btn-primary'
@@ -252,14 +313,12 @@ const AdminPage = () => {
     }
   };
 
-  // ── Remove deleted message from state ──
   const deleteMessage = (messageId) => {
     setMessages(prev => prev.filter(m => m._id !== messageId));
   };
 
   const unreadCount = messages.filter(m => !m.isRead).length;
 
-  // ── Tab button style helper ──
   const tabStyle = (name) => ({
     background:    tab === name ? 'var(--accent)' : 'rgba(139,94,60,0.15)',
     color:         tab === name ? '#ffffff'        : 'black',
@@ -421,7 +480,6 @@ const AdminPage = () => {
                   <td>
                     {p.status === 'published' && (
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {/* ✅ FIXED: Edit button — only if admin is the author */}
                         {p.author?._id === currentUser?._id && (
                           <button
                             className='btn-primary'
@@ -431,7 +489,6 @@ const AdminPage = () => {
                             Edit
                           </button>
                         )}
-                        {/* Remove — available to all admins */}
                         <button
                           className='btn-primary'
                           onClick={() => removePost(p._id)}

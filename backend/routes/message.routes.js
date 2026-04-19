@@ -40,6 +40,19 @@ router.get('/reply/:email', async (req, res) => {
   }
 });
 
+// GET /api/messages/thread/:id — public, para makita ng user ang buong thread
+// ⚠️ Kailangang BAGO ang /:id routes para hindi ma-intercept ng Express
+router.get('/thread/:id', async (req, res) => {
+  try {
+    const msg = await Message.findById(req.params.id)
+      .select('name message threads createdAt');
+    if (!msg) return res.status(404).json({ message: 'Message not found.' });
+    res.json(msg);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch thread.' });
+  }
+});
+
 // PATCH /api/messages/:id/read — mark as read
 router.patch('/:id/read', protect, adminOnly, async (req, res) => {
   try {
@@ -63,7 +76,13 @@ router.post('/:id/user-reply', async (req, res) => {
 
     const msg = await Message.findByIdAndUpdate(
       req.params.id,
-      { userReply, userRepliedAt: new Date() },
+      {
+        userReply,                // backward compat
+        userRepliedAt: new Date(),
+        $push: {
+          threads: { sender: 'user', text: userReply }
+        }
+      },
       { new: true }
     );
     if (!msg) return res.status(404).json({ message: 'Message not found.' });
@@ -74,12 +93,23 @@ router.post('/:id/user-reply', async (req, res) => {
   }
 });
 
-// PATCH /api/messages/:id/reply — save reply + send email
+// PATCH /api/messages/:id/reply — save admin reply + push to threads + send email
 router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
   try {
+    const { reply } = req.body;
+    if (!reply?.trim())
+      return res.status(400).json({ message: 'Reply cannot be empty.' });
+
     const msg = await Message.findByIdAndUpdate(
       req.params.id,
-      { reply: req.body.reply, repliedAt: new Date(), isRead: true },
+      {
+        isRead: true,
+        reply,                    // backward compat
+        repliedAt: new Date(),
+        $push: {
+          threads: { sender: 'admin', text: reply }
+        }
+      },
       { new: true }
     );
 
@@ -101,7 +131,7 @@ router.patch('/:id/reply', protect, adminOnly, async (req, res) => {
 
     <div style="background: #fff; border: 1px solid #b08968; padding: 12px 16px; border-radius: 6px; margin: 16px 0;">
       <p style="margin: 0; font-weight: bold; color: #b08968;">Admin's Reply:</p>
-      <p style="margin: 6px 0 0;">${req.body.reply}</p>
+      <p style="margin: 6px 0 0;">${reply}</p>
     </div>
 
     <div style="text-align: center; margin-top: 24px;">
