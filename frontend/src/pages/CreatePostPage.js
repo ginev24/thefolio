@@ -80,7 +80,7 @@ const CreatePostPage = () => {
 
           {/* ── Multiple Image Upload ── */}
           <div className='form-field'>
-            <label htmlFor='images'>Images (Admin only):</label>
+            <label htmlFor='images'>Images:</label>
             <input
               id='images'
               type='file'
