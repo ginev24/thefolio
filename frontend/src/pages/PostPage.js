@@ -17,10 +17,9 @@ const PostPage = () => {
   const [error,       setError]       = useState('');
   const [commentErr,  setCommentErr]  = useState('');
 
-  // reply state
-  const [replyingTo,   setReplyingTo]   = useState(null);
-  const [replyBody,    setReplyBody]    = useState('');
-  const [replyErr,     setReplyErr]     = useState('');
+  const [replyingTo,     setReplyingTo]     = useState(null);
+  const [replyBody,      setReplyBody]      = useState('');
+  const [replyErr,       setReplyErr]       = useState('');
   const [visibleReplies, setVisibleReplies] = useState({});
 
   useEffect(() => {
@@ -123,11 +122,8 @@ const PostPage = () => {
   if (loading) return <main className='container'><p style={{ padding:'3rem', fontStyle:'italic' }}>Loading post...</p></main>;
   if (error)   return <main className='container'><p className='error-msg' style={{ padding:'2rem' }}>{error}</p></main>;
 
-  const isOwner = user && post.author?._id === user._id;
-  const isAdmin = user && user.role === 'admin';
-
-  // Edit — sariling post lang (owner, kahit admin o member)
-  // Delete — owner OR admin
+  const isOwner   = user && post.author?._id === user._id;
+  const isAdmin   = user && user.role === 'admin';
   const canEdit   = isOwner;
   const canDelete = isOwner || isAdmin;
 
@@ -137,12 +133,18 @@ const PostPage = () => {
       {/* ── Post content ── */}
       <article className='card-warm' style={{ marginBottom: '30px' }}>
 
-        {post.image && (
-          <img
-            src={cloudImg(post.image)}
-            alt={post.title}
-            style={{ width:'100%', maxHeight:360, objectFit:'cover', borderRadius:'8px', margin:'0 0 20px' }}
-          />
+        {/* ── Multiple images ── */}
+        {post.images?.length > 0 && (
+          <div style={{ display:'flex', flexDirection:'column', gap:'12px', marginBottom:'20px' }}>
+            {post.images.map((img, i) => (
+              <img
+                key={i}
+                src={cloudImg(img)}
+                alt={`${post.title} ${i + 1}`}
+                style={{ width:'100%', maxHeight:360, objectFit:'cover', borderRadius:'8px' }}
+              />
+            ))}
+          </div>
         )}
 
         <h2 style={{ fontFamily:"'Cinzel', serif", marginBottom:'10px' }}>{post.title}</h2>
@@ -162,7 +164,6 @@ const PostPage = () => {
         {/* ── Actions row ── */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:'24px' }}>
 
-          {/* Edit + Delete buttons — left side */}
           <div style={{ display:'flex', gap:'12px' }}>
             {canEdit && (
               <Link
@@ -184,7 +185,6 @@ const PostPage = () => {
             )}
           </div>
 
-          {/* Heart — right side */}
           <HeartButton
             postId={post._id}
             initialHearts={Array.isArray(post.hearts) ? post.hearts.length : 0}
