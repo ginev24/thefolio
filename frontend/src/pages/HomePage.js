@@ -108,10 +108,10 @@ const HomePage = () => {
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:'24px' }}>
         {posts.map(post => (
           <div key={post._id} className='card-warm' style={{ padding:'20px', display:'flex', flexDirection:'column', gap:'10px' }}>
-            {post.image && (
-              <img src={post.image} alt={post.title}
-                style={{ width:'100%', height:180, objectFit:'cover', borderRadius:'8px', margin:0 }} />
-            )}
+           {post.images?.[0] && (
+          <img src={post.images[0]} alt={post.title}
+          style={{ width:'100%', height:180, objectFit:'cover', borderRadius:'8px', margin:0 }} />
+          )}
             <h3 style={{ fontFamily:"'Cinzel', serif", fontSize:'1rem' }}>
               <Link to={`/posts/${post._id}`} style={{ color:'var(--text-color)' }}>{post.title}</Link>
             </h3>
