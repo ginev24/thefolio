@@ -421,15 +421,15 @@ const AdminPage = () => {
                   <td>
                     {p.status === 'published' && (
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                        {/* Edit — only if admin is the author */}
+                        {/* ✅ FIXED: Edit button — only if admin is the author */}
                         {p.author?._id === currentUser?._id && (
-                          <a
-                            href={`/edit/${p._id}`}
-                          className='btn-primary'
-                          style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#2980b9', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}
+                          <button
+                            className='btn-primary'
+                            onClick={() => navigate(`/edit-post/${p._id}`)}
+                            style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#2980b9', color: '#fff' }}
                           >
                             Edit
-                        </a>
+                          </button>
                         )}
                         {/* Remove — available to all admins */}
                         <button
