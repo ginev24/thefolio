@@ -3,28 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
 const CreatePostPage = () => {
-  const [title,   setTitle]   = useState('');
-  const [body,    setBody]    = useState('');
-  const [images,  setImages]  = useState([]); // ← array na ngayon
-  const [previews, setPreviews] = useState([]); // ← para sa preview
-  const [error,   setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [title,    setTitle]    = useState('');
+  const [body,     setBody]     = useState('');
+  const [images,   setImages]   = useState([]);
+  const [previews, setPreviews] = useState([]);
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
 
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setImages(files);
-    // Gawa ng preview URLs
-    const urls = files.map(f => URL.createObjectURL(f));
-    setPreviews(urls);
+    const newFiles = Array.from(e.target.files);
+    setImages(prev => [...prev, ...newFiles]);
+    const newUrls = newFiles.map(f => URL.createObjectURL(f));
+    setPreviews(prev => [...prev, ...newUrls]);
+    e.target.value = ''; // i-reset para makapili ulit ng same file
   };
 
   const removeImage = (index) => {
-    const newImages   = images.filter((_, i) => i !== index);
-    const newPreviews = previews.filter((_, i) => i !== index);
-    setImages(newImages);
-    setPreviews(newPreviews);
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -35,7 +33,6 @@ const CreatePostPage = () => {
     const fd = new FormData();
     fd.append('title', title);
     fd.append('body',  body);
-    // I-append lahat ng images sa iisang field name na 'images'
     images.forEach(img => fd.append('images', img));
 
     try {
