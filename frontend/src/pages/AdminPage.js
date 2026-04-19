@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -210,6 +211,7 @@ const MessageRow = ({ m, onRead, onReply, onDelete }) => {
 // ── AdminPage component ───────────────────────────────────────────────────
 const AdminPage = () => {
   const { user: currentUser } = useAuth();
+  const navigate = useNavigate();
   const [users,    setUsers]    = useState([]);
   const [posts,    setPosts]    = useState([]);
   const [messages, setMessages] = useState([]);
@@ -423,11 +425,11 @@ const AdminPage = () => {
                         {p.author?._id === currentUser?._id && (
                           <a
                             href={`/edit/${p._id}`}
-                            className='btn-primary'
-                            style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#2980b9', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}
+                          className='btn-primary'
+                          style={{ padding: '5px 14px', fontSize: '0.8rem', background: '#2980b9', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}
                           >
                             Edit
-                          </a>
+                        </a>
                         )}
                         {/* Remove — available to all admins */}
                         <button
