@@ -13,6 +13,20 @@ const getPublicId = (url = '') => {
   return match ? match[1] : null;
 };
 
+// ── helper: delete multiple images from Cloudinary ───────────────────────
+const deleteImages = async (imageUrls = []) => {
+  for (const url of imageUrls) {
+    const publicId = getPublicId(url);
+    if (publicId) {
+      try {
+        await cloudinary.uploader.destroy(publicId);
+      } catch (err) {
+        console.error('Error deleting image:', err);
+      }
+    }
+  }
+};
+
 // ── GET /api/posts ────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
@@ -43,7 +57,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST /api/posts ───────────────────────────────────────────────────────
-router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res) => {
+router.post('/', protect, memberOrAdmin, upload.array('images', 10), async (req, res) => {
   try {
     const { title, body } = req.body;
 
@@ -51,12 +65,13 @@ router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res
       return res.status(400).json({ message: 'Title and body are required' });
     }
 
-    const imageUrl = req.file ? req.file.path : '';
+    // Kukunin ang lahat ng uploaded image URLs
+    const imageUrls = req.files ? req.files.map(f => f.path) : [];
 
     const post = new Post({
       title,
       body,
-      image: imageUrl,
+      images: imageUrls,
       author: req.user._id,
       status: 'published',
     });
@@ -72,7 +87,7 @@ router.post('/', protect, memberOrAdmin, upload.single('image'), async (req, res
 });
 
 // ── PUT /api/posts/:id ────────────────────────────────────────────────────
-router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, res) => {
+router.put('/:id', protect, memberOrAdmin, upload.array('images', 10), async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
@@ -87,19 +102,11 @@ router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, r
     if (req.body.title) post.title = req.body.title;
     if (req.body.body)  post.body  = req.body.body;
 
-    if (req.file) {
-      // Delete old image before replacing
-      if (post.image) {
-        const publicId = getPublicId(post.image);
-        if (publicId) {
-          try {
-            await cloudinary.uploader.destroy(publicId);
-          } catch (err) {
-            console.error('Error deleting old image:', err);
-          }
-        }
-      }
-      post.image = req.file.path;
+    if (req.files && req.files.length > 0) {
+      // Burahin lahat ng lumang images sa Cloudinary
+      await deleteImages(post.images);
+      // Palitan ng bagong images
+      post.images = req.files.map(f => f.path);
     }
 
     await post.save();
@@ -111,7 +118,7 @@ router.put('/:id', protect, memberOrAdmin, upload.single('image'), async (req, r
   }
 });
 
-// ── DELETE /api/posts/:id ────────────────────────────────────────────────
+// ── DELETE /api/posts/:id ─────────────────────────────────────────────────
 router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -124,16 +131,8 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to delete this post' });
     }
 
-    if (post.image) {
-      const publicId = getPublicId(post.image);
-      if (publicId) {
-        try {
-          await cloudinary.uploader.destroy(publicId);
-        } catch (err) {
-          console.error('Error deleting image:', err);
-        }
-      }
-    }
+    // Burahin lahat ng images sa Cloudinary
+    await deleteImages(post.images);
 
     await post.deleteOne();
     res.json({ message: 'Post deleted successfully' });
@@ -143,28 +142,26 @@ router.delete('/:id', protect, memberOrAdmin, async (req, res) => {
   }
 });
 
-// ── POST /api/posts/:id/heart ────────────────────────────────────────────
+// ── POST /api/posts/:id/heart ─────────────────────────────────────────────
 router.post('/:id/heart', protect, async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const userId = req.user._id.toString();  // ← .toString() dito
-
-    // ← palitan ang indexOf ng findIndex + toString() comparison
+    const userId = req.user._id.toString();
     const idx = post.hearts.findIndex(h => h.toString() === userId);
 
     if (idx === -1) {
-      post.hearts.push(req.user._id);   // like
+      post.hearts.push(req.user._id);
     } else {
-      post.hearts.splice(idx, 1);       // unlike
+      post.hearts.splice(idx, 1);
     }
 
     await post.save();
 
     res.json({
       hearts: post.hearts.length,
-      liked: idx === -1
+      liked: idx === -1,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -172,4 +169,3 @@ router.post('/:id/heart', protect, async (req, res) => {
 });
 
 module.exports = router;
-

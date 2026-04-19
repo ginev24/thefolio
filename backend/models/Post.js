@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema(
@@ -12,20 +11,19 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    image: {
-      type: String,
-      default: '', // will store Cloudinary secure URL
+    images: {
+      type: [String],
+      default: [],
       validate: {
-        validator: function (v) {
-          // allow empty or valid URL
-          return !v || /^https?:\/\/.+/.test(v);
+        validator: function (arr) {
+          return arr.every(v => !v || /^https?:\/\/.+/.test(v));
         },
-        message: props => `${props.value} is not a valid URL`,
+        message: 'One or more image URLs are invalid',
       },
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',      // creates a relationship — like a foreign key
+      ref: 'User',
       required: true,
     },
     status: {
@@ -33,7 +31,7 @@ const postSchema = new mongoose.Schema(
       enum: ['published', 'removed'],
       default: 'published',
     },
-    hearts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    hearts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
 );
