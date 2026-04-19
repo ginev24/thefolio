@@ -98,7 +98,7 @@ const EditPostPage = () => {
             {existing.length > 0 && (
               <div>
                 <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
-                  Kasalukuyang mga larawan:
+                  Recent Image:
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
                   {existing.map((url, i) => (
