@@ -90,95 +90,93 @@ const EditPostPage = () => {
               value={body} onChange={e => setBody(e.target.value)} required />
           </div>
 
-          {/* ── Image Section — Admin only ── */}
-          {user?.role === 'admin' && (
-            <div className='form-field'>
-              <label>Replace Images (Admin only):</label>
+          {/* ── Image Section — available to all post owners ── */}
+          <div className='form-field'>
+            <label>Replace Images:</label>
 
-              {/* Existing images */}
-              {existing.length > 0 && (
-                <div>
-                  <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
-                    Kasalukuyang mga larawan:
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
-                    {existing.map((url, i) => (
-                      <img
-                        key={i}
-                        src={url}
-                        alt={`existing-${i}`}
-                        style={{
-                          width: '100px',
-                          height: '100px',
-                          objectFit: 'cover',
-                          borderRadius: '8px',
-                          border: '1px solid #ccc',
-                          opacity: images.length > 0 ? 0.4 : 1, // dimmed kapag may bagong pinili
-                        }}
-                      />
-                    ))}
-                  </div>
-                  {images.length > 0 && (
-                    <p style={{ fontSize: '12px', color: '#c0392b', marginBottom: '8px' }}>
-                      ⚠️ Papalitan ang mga lumang larawan ng mga bagong pinili.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* New image picker */}
-              <input
-                id='edit-images'
-                type='file'
-                accept='image/*'
-                multiple
-                onChange={handleImageChange}
-                style={{ marginTop: 6, fontFamily: "'Crimson Text', serif" }}
-              />
-
-              {/* New image previews */}
-              {previews.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
-                  {previews.map((url, i) => (
-                    <div key={i} style={{ position: 'relative' }}>
-                      <img
-                        src={url}
-                        alt={`new-preview-${i}`}
-                        style={{
-                          width: '100px',
-                          height: '100px',
-                          objectFit: 'cover',
-                          borderRadius: '8px',
-                          border: '2px solid #8B0000',
-                        }}
-                      />
-                      <button
-                        type='button'
-                        onClick={() => removeNewImage(i)}
-                        style={{
-                          position: 'absolute',
-                          top: '-6px',
-                          right: '-6px',
-                          background: '#8B0000',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '50%',
-                          width: '20px',
-                          height: '20px',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          lineHeight: '20px',
-                          textAlign: 'center',
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
+            {/* Existing images */}
+            {existing.length > 0 && (
+              <div>
+                <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>
+                  Kasalukuyang mga larawan:
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '12px' }}>
+                  {existing.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`existing-${i}`}
+                      style={{
+                        width: '100px',
+                        height: '100px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '1px solid #ccc',
+                        opacity: images.length > 0 ? 0.4 : 1, // dimmed kapag may bagong pinili
+                      }}
+                    />
                   ))}
                 </div>
-              )}
-            </div>
-          )}
+                {images.length > 0 && (
+                  <p style={{ fontSize: '12px', color: '#c0392b', marginBottom: '8px' }}>
+                    ⚠️ Papalitan ang mga lumang larawan ng mga bagong pinili.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* New image picker */}
+            <input
+              id='edit-images'
+              type='file'
+              accept='image/*'
+              multiple
+              onChange={handleImageChange}
+              style={{ marginTop: 6, fontFamily: "'Crimson Text', serif" }}
+            />
+
+            {/* New image previews */}
+            {previews.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '12px' }}>
+                {previews.map((url, i) => (
+                  <div key={i} style={{ position: 'relative' }}>
+                    <img
+                      src={url}
+                      alt={`new-preview-${i}`}
+                      style={{
+                        width: '100px',
+                        height: '100px',
+                        objectFit: 'cover',
+                        borderRadius: '8px',
+                        border: '2px solid #8B0000',
+                      }}
+                    />
+                    <button
+                      type='button'
+                      onClick={() => removeNewImage(i)}
+                      style={{
+                        position: 'absolute',
+                        top: '-6px',
+                        right: '-6px',
+                        background: '#8B0000',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '20px',
+                        height: '20px',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        lineHeight: '20px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button className='btn-primary' onClick={handleSubmit} disabled={saving}>
