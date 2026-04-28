@@ -3,10 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
-// ── Base URL for resolving relative image paths from the backend ──────────────
-// Make sure your .env has:  VITE_API_URL=https://your-backend.onrender.com
-const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-
 const ProfilePage = () => {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -17,28 +13,18 @@ const ProfilePage = () => {
   const [curPw,   setCurPw]   = useState('');
   const [newPw,   setNewPw]   = useState('');
   const [msg,     setMsg]     = useState('');
-  const [msgType, setMsgType] = useState(''); // 'success' | 'error'
+  const [msgType, setMsgType] = useState('');
   const [imgError, setImgError] = useState(false);
 
   // Delete account modal state
-  const [showDeleteModal,    setShowDeleteModal]    = useState(false);
-  const [deleteConfirmText,  setDeleteConfirmText]  = useState('');
-  const [deletePassword,     setDeletePassword]     = useState('');
-  const [deleting,           setDeleting]           = useState(false);
+  const [showDeleteModal,   setShowDeleteModal]   = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deletePassword,    setDeletePassword]    = useState('');
+  const [deleting,          setDeleting]          = useState(false);
 
   const showMsg = (text, type = 'success') => { setMsg(text); setMsgType(type); };
 
-  // ── Resolve profile pic URL ───────────────────────────────────────────
-  const resolvePicSrc = (profilePic) => {
-    if (!profilePic) return null;
-    if (profilePic.startsWith('http://') || profilePic.startsWith('https://')) {
-      return profilePic;
-    }
-    const path = profilePic.startsWith('/') ? profilePic : `/${profilePic}`;
-    return `${BASE_URL}${path}`;
-  };
-
-  const picSrc = resolvePicSrc(user?.profilePic);
+  const picSrc = user?.profilePic || null;
 
   // ── Update profile ────────────────────────────────────────────────────
   const handleProfile = async (e) => {
@@ -52,7 +38,6 @@ const ProfilePage = () => {
 
     try {
       const { data } = await API.put('/auth/profile', fd);
-      console.log('[ProfilePage] Updated user:', data); // ← debug
       setUser(data);
       showMsg('Profile updated successfully!');
     } catch (err) {
@@ -102,8 +87,6 @@ const ProfilePage = () => {
 
       {/* ── Profile card ── */}
       <section className='card-warm' style={{ marginBottom: '30px', textAlign: 'center' }}>
-
-        {/* Profile picture or fallback emoji */}
         {picSrc && !imgError ? (
           <img
             src={picSrc}
@@ -121,18 +104,6 @@ const ProfilePage = () => {
         ) : (
           <div style={{ fontSize: 64, marginBottom: 8 }}>♟️</div>
         )}
-
-        {/* ── DEBUG BLOCK: shows the raw pic value and resolved URL ──
-            Remove this <details> block once profile picture is working. */}
-        <details style={{ fontSize: '0.7rem', color: '#999', margin: '4px auto 8px', maxWidth: 320, textAlign: 'left' }}>
-          <summary style={{ cursor: 'pointer', color: '#bbb' }}>🔍 Debug pic info</summary>
-          <code style={{ wordBreak: 'break-all', display: 'block', marginTop: 4 }}>
-            pic field: {user?.profilePic || '(empty)'}<br/>
-            resolved:  {picSrc || '(null)'}<br/>
-            imgError:  {String(imgError)}
-          </code>
-        </details>
-
         <h2 style={{ fontFamily: "'Cinzel', serif" }}>{user?.name}</h2>
         {user?.bio && (
           <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginTop: 6 }}>
@@ -180,7 +151,6 @@ const ProfilePage = () => {
           </div>
           <div className='form-field'>
             <label htmlFor='prof-pic'>Change Profile Picture:</label>
-            {/* Preview selected image before uploading */}
             {pic && (
               <img
                 src={URL.createObjectURL(pic)}
@@ -266,40 +236,29 @@ const ProfilePage = () => {
 
       {/* ── Delete Confirmation Modal ── */}
       {showDeleteModal && (
-        <div
-          style={{
-            position: 'fixed', inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: '10px',
-              padding: '32px',
-              maxWidth: '440px',
-              width: '100%',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-              position: 'relative',
-            }}
-          >
+        <div style={{
+          position: 'fixed', inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 1000, padding: '16px',
+        }}>
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '10px',
+            padding: '32px',
+            maxWidth: '440px',
+            width: '100%',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+            position: 'relative',
+          }}>
             <button
-              onClick={() => {
-                setShowDeleteModal(false);
-                setDeleteConfirmText('');
-                setDeletePassword('');
-              }}
+              onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeletePassword(''); }}
               style={{
                 position: 'absolute', top: 14, right: 16,
                 background: 'none', border: 'none',
                 fontSize: '1.4rem', cursor: 'pointer', color: '#888',
               }}
-            >
-              ✕
-            </button>
+            >✕</button>
 
             <h3 style={{ fontFamily: "'Cinzel', serif", color: '#c0392b', marginBottom: '12px' }}>
               Delete Account
@@ -314,8 +273,7 @@ const ProfilePage = () => {
                 Enter your password to confirm:
               </label>
               <input
-                type='password'
-                className='form-input'
+                type='password' className='form-input'
                 value={deletePassword}
                 onChange={e => setDeletePassword(e.target.value)}
                 placeholder='Your current password'
@@ -328,8 +286,7 @@ const ProfilePage = () => {
                 Type <strong>DELETE</strong> to confirm:
               </label>
               <input
-                type='text'
-                className='form-input'
+                type='text' className='form-input'
                 value={deleteConfirmText}
                 onChange={e => setDeleteConfirmText(e.target.value)}
                 placeholder='DELETE'
@@ -339,33 +296,21 @@ const ProfilePage = () => {
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeleteConfirmText('');
-                  setDeletePassword('');
-                }}
+                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeletePassword(''); }}
                 style={{
                   padding: '9px 20px', borderRadius: '6px',
                   border: '1px solid #ccc', background: '#f5f5f5',
                   cursor: 'pointer', fontFamily: "'Crimson Text', serif", fontSize: '1rem',
                 }}
-              >
-                Cancel
-              </button>
+              >Cancel</button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}
                 style={{
                   padding: '9px 20px', borderRadius: '6px',
-                  backgroundColor:
-                    deleting || deleteConfirmText !== 'DELETE' || !deletePassword
-                      ? '#e8a0a0'
-                      : '#c0392b',
+                  backgroundColor: (deleting || deleteConfirmText !== 'DELETE' || !deletePassword) ? '#e8a0a0' : '#c0392b',
                   color: '#fff', border: 'none',
-                  cursor:
-                    deleting || deleteConfirmText !== 'DELETE' || !deletePassword
-                      ? 'not-allowed'
-                      : 'pointer',
+                  cursor: (deleting || deleteConfirmText !== 'DELETE' || !deletePassword) ? 'not-allowed' : 'pointer',
                   fontFamily: "'Cinzel', serif", fontSize: '0.9rem',
                   letterSpacing: '0.05em',
                 }}
