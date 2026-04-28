@@ -3,6 +3,9 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
+// ── Base URL for resolving relative image paths from the backend ──────────────
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 const ProfilePage = () => {
   const { user, setUser, logout } = useAuth();
   const navigate = useNavigate();
@@ -16,12 +19,25 @@ const ProfilePage = () => {
   const [msgType, setMsgType] = useState(''); // 'success' | 'error'
 
   // Delete account modal state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [deletePassword, setDeletePassword] = useState('');
-  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal,    setShowDeleteModal]    = useState(false);
+  const [deleteConfirmText,  setDeleteConfirmText]  = useState('');
+  const [deletePassword,     setDeletePassword]     = useState('');
+  const [deleting,           setDeleting]           = useState(false);
 
   const showMsg = (text, type = 'success') => { setMsg(text); setMsgType(type); };
+
+  // ── Resolve profile pic URL ───────────────────────────────────────────
+  const resolvePicSrc = (profilePic) => {
+    if (!profilePic) return null;
+    // Already an absolute URL (e.g. Cloudinary, S3, etc.)
+    if (profilePic.startsWith('http://') || profilePic.startsWith('https://')) {
+      return profilePic;
+    }
+    // Relative path — prepend the API base URL
+    return `${BASE_URL}${profilePic.startsWith('/') ? '' : '/'}${profilePic}`;
+  };
+
+  const picSrc = resolvePicSrc(user?.profilePic);
 
   // ── Update profile ────────────────────────────────────────────────────
   const handleProfile = async (e) => {
@@ -78,49 +94,95 @@ const ProfilePage = () => {
     }
   };
 
-  const picSrc = user?.profilePic ? `${user.profilePic}` : null;
-
   return (
     <main className='container'>
 
       {/* ── Profile card ── */}
       <section className='card-warm' style={{ marginBottom: '30px', textAlign: 'center' }}>
-        {picSrc
-          ? <img src={picSrc} alt='Profile' style={{ width:100, height:100, borderRadius:'50%', objectFit:'cover', margin:'0 auto 12px', border:'3px solid var(--accent)' }} />
-          : <div style={{ fontSize:64, marginBottom:8 }}>♟️</div>
-        }
-        <h2 style={{ fontFamily:"'Cinzel', serif" }}>{user?.name}</h2>
-        {user?.bio && <p style={{ fontStyle:'italic', color:'var(--text-secondary)', marginTop:6 }}>{user.bio}</p>}
-        <p style={{ fontSize:'0.85rem', color:'var(--accent)', marginTop:4 }}>Role: {user?.role}</p>
+        {picSrc ? (
+          <img
+            src={picSrc}
+            alt='Profile'
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            style={{
+              width: 100, height: 100,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              margin: '0 auto 12px',
+              display: 'block',
+              border: '3px solid var(--accent)',
+            }}
+          />
+        ) : (
+          <div style={{ fontSize: 64, marginBottom: 8 }}>♟️</div>
+        )}
+        <h2 style={{ fontFamily: "'Cinzel', serif" }}>{user?.name}</h2>
+        {user?.bio && (
+          <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginTop: 6 }}>
+            {user.bio}
+          </p>
+        )}
+        <p style={{ fontSize: '0.85rem', color: 'var(--accent)', marginTop: 4 }}>
+          Role: {user?.role}
+        </p>
       </section>
 
       {/* ── Status message ── */}
       {msg && (
-        <p className={msgType === 'error' ? 'error-msg' : ''}
-           style={{ marginBottom:'16px', color: msgType === 'success' ? 'green' : undefined, fontWeight:600 }}>
+        <p
+          className={msgType === 'error' ? 'error-msg' : ''}
+          style={{
+            marginBottom: '16px',
+            color: msgType === 'success' ? 'green' : undefined,
+            fontWeight: 600,
+          }}
+        >
           {msg}
         </p>
       )}
 
       {/* ── Edit Profile form ── */}
       <section className='card-form' style={{ marginBottom: '30px' }}>
-        <h3 style={{ fontFamily:"'Cinzel', serif", marginBottom:'16px' }}>Edit Profile</h3>
+        <h3 style={{ fontFamily: "'Cinzel', serif", marginBottom: '16px' }}>Edit Profile</h3>
         <div className='form-inner' style={{ paddingLeft: 0 }}>
           <div className='form-field'>
             <label htmlFor='prof-name'>Display Name:</label>
-            <input id='prof-name' type='text' className='form-input'
-              value={name} onChange={e => setName(e.target.value)} placeholder='Your name' />
+            <input
+              id='prof-name' type='text' className='form-input'
+              value={name} onChange={e => setName(e.target.value)}
+              placeholder='Your name'
+            />
           </div>
           <div className='form-field'>
             <label htmlFor='prof-bio'>Short Bio:</label>
-            <textarea id='prof-bio' className='form-input' rows={3}
-              value={bio} onChange={e => setBio(e.target.value)} placeholder='Tell us about yourself...' />
+            <textarea
+              id='prof-bio' className='form-input' rows={3}
+              value={bio} onChange={e => setBio(e.target.value)}
+              placeholder='Tell us about yourself...'
+            />
           </div>
           <div className='form-field'>
             <label htmlFor='prof-pic'>Change Profile Picture:</label>
-            <input id='prof-pic' type='file' accept='image/*'
+            {/* Preview selected image before uploading */}
+            {pic && (
+              <img
+                src={URL.createObjectURL(pic)}
+                alt='Preview'
+                style={{
+                  width: 80, height: 80,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  margin: '8px 0',
+                  border: '2px solid var(--accent)',
+                  display: 'block',
+                }}
+              />
+            )}
+            <input
+              id='prof-pic' type='file' accept='image/*'
               onChange={e => setPic(e.target.files[0])}
-              style={{ marginTop:6, fontFamily:"'Crimson Text', serif" }} />
+              style={{ marginTop: 6, fontFamily: "'Crimson Text', serif" }}
+            />
             <span className='info-msg'>JPG, PNG, GIF or WebP — max 5 MB</span>
           </div>
           <button className='btn-primary' onClick={handleProfile}>Save Profile</button>
@@ -129,34 +191,42 @@ const ProfilePage = () => {
 
       {/* ── Change Password form ── */}
       <section className='card-form' style={{ marginBottom: '30px' }}>
-        <h3 style={{ fontFamily:"'Cinzel', serif", marginBottom:'16px' }}>Change Password</h3>
+        <h3 style={{ fontFamily: "'Cinzel', serif", marginBottom: '16px' }}>Change Password</h3>
         <div className='form-inner' style={{ paddingLeft: 0 }}>
           <div className='form-field'>
             <label htmlFor='cur-pw'>Current Password:</label>
-            <input id='cur-pw' type='password' className='form-input'
-              value={curPw} onChange={e => setCurPw(e.target.value)} placeholder='Enter current password' required />
+            <input
+              id='cur-pw' type='password' className='form-input'
+              value={curPw} onChange={e => setCurPw(e.target.value)}
+              placeholder='Enter current password' required
+            />
           </div>
           <div className='form-field'>
             <label htmlFor='new-pw'>New Password:</label>
-            <input id='new-pw' type='password' className='form-input'
+            <input
+              id='new-pw' type='password' className='form-input'
               value={newPw} onChange={e => setNewPw(e.target.value)}
-              placeholder='New password (min 6 chars)' required minLength={6} />
+              placeholder='New password (min 6 chars)' required minLength={6}
+            />
           </div>
           <button className='btn-primary' onClick={handlePassword}>Change Password</button>
         </div>
       </section>
 
       {/* ── Danger Zone ── */}
-      <section className='card-form' style={{
-        marginBottom: '30px',
-        border: '1.5px solid #c0392b',
-        borderRadius: '8px',
-        backgroundColor: '#fff8f8',
-      }}>
-        <h3 style={{ fontFamily:"'Cinzel', serif", marginBottom:'8px', color:'#c0392b' }}>
+      <section
+        className='card-form'
+        style={{
+          marginBottom: '30px',
+          border: '1.5px solid #c0392b',
+          borderRadius: '8px',
+          backgroundColor: '#fff8f8',
+        }}
+      >
+        <h3 style={{ fontFamily: "'Cinzel', serif", marginBottom: '8px', color: '#c0392b' }}>
           Danger Zone
         </h3>
-        <p style={{ fontSize:'0.9rem', color:'#666', marginBottom:'16px' }}>
+        <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '16px' }}>
           Once you delete your account, all your data will be permanently removed and cannot be recovered.
         </p>
         <button
@@ -179,43 +249,52 @@ const ProfilePage = () => {
 
       {/* ── Delete Confirmation Modal ── */}
       {showDeleteModal && (
-        <div style={{
-          position: 'fixed', inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.6)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000,
-          padding: '16px',
-        }}>
-          <div style={{
-            backgroundColor: '#fff',
-            borderRadius: '10px',
-            padding: '32px',
-            maxWidth: '440px',
-            width: '100%',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
-            position: 'relative',
-          }}>
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.6)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 1000,
+            padding: '16px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '10px',
+              padding: '32px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
+              position: 'relative',
+            }}
+          >
             {/* Close button */}
             <button
-              onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeletePassword(''); }}
+              onClick={() => {
+                setShowDeleteModal(false);
+                setDeleteConfirmText('');
+                setDeletePassword('');
+              }}
               style={{
-                position:'absolute', top:14, right:16,
-                background:'none', border:'none',
-                fontSize:'1.4rem', cursor:'pointer', color:'#888',
+                position: 'absolute', top: 14, right: 16,
+                background: 'none', border: 'none',
+                fontSize: '1.4rem', cursor: 'pointer', color: '#888',
               }}
             >
               ✕
             </button>
 
-            <h3 style={{ fontFamily:"'Cinzel', serif", color:'#c0392b', marginBottom:'12px' }}>
+            <h3 style={{ fontFamily: "'Cinzel', serif", color: '#c0392b', marginBottom: '12px' }}>
               Delete Account
             </h3>
-            <p style={{ fontSize:'0.9rem', color:'#444', marginBottom:'20px', lineHeight:1.6 }}>
-              This action is <strong>permanent</strong> and cannot be undone. All your posts, settings, and data will be deleted.
+            <p style={{ fontSize: '0.9rem', color: '#444', marginBottom: '20px', lineHeight: 1.6 }}>
+              This action is <strong>permanent</strong> and cannot be undone. All your posts, settings,
+              and data will be deleted.
             </p>
 
-            <div className='form-field' style={{ marginBottom:'14px' }}>
-              <label style={{ fontSize:'0.85rem', color:'#555', display:'block', marginBottom:6 }}>
+            <div className='form-field' style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.85rem', color: '#555', display: 'block', marginBottom: 6 }}>
                 Enter your password to confirm:
               </label>
               <input
@@ -224,12 +303,12 @@ const ProfilePage = () => {
                 value={deletePassword}
                 onChange={e => setDeletePassword(e.target.value)}
                 placeholder='Your current password'
-                style={{ width:'100%' }}
+                style={{ width: '100%' }}
               />
             </div>
 
-            <div className='form-field' style={{ marginBottom:'20px' }}>
-              <label style={{ fontSize:'0.85rem', color:'#555', display:'block', marginBottom:6 }}>
+            <div className='form-field' style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.85rem', color: '#555', display: 'block', marginBottom: 6 }}>
                 Type <strong>DELETE</strong> to confirm:
               </label>
               <input
@@ -238,17 +317,21 @@ const ProfilePage = () => {
                 value={deleteConfirmText}
                 onChange={e => setDeleteConfirmText(e.target.value)}
                 placeholder='DELETE'
-                style={{ width:'100%' }}
+                style={{ width: '100%' }}
               />
             </div>
 
-            <div style={{ display:'flex', gap:'12px', justifyContent:'flex-end' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
               <button
-                onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); setDeletePassword(''); }}
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                  setDeletePassword('');
+                }}
                 style={{
-                  padding:'9px 20px', borderRadius:'6px',
-                  border:'1px solid #ccc', background:'#f5f5f5',
-                  cursor:'pointer', fontFamily:"'Crimson Text', serif", fontSize:'1rem',
+                  padding: '9px 20px', borderRadius: '6px',
+                  border: '1px solid #ccc', background: '#f5f5f5',
+                  cursor: 'pointer', fontFamily: "'Crimson Text', serif", fontSize: '1rem',
                 }}
               >
                 Cancel
@@ -257,12 +340,18 @@ const ProfilePage = () => {
                 onClick={handleDeleteAccount}
                 disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}
                 style={{
-                  padding:'9px 20px', borderRadius:'6px',
-                  backgroundColor: (deleting || deleteConfirmText !== 'DELETE' || !deletePassword) ? '#e8a0a0' : '#c0392b',
-                  color:'#fff', border:'none',
-                  cursor: (deleting || deleteConfirmText !== 'DELETE' || !deletePassword) ? 'not-allowed' : 'pointer',
-                  fontFamily:"'Cinzel', serif", fontSize:'0.9rem',
-                  letterSpacing:'0.05em',
+                  padding: '9px 20px', borderRadius: '6px',
+                  backgroundColor:
+                    deleting || deleteConfirmText !== 'DELETE' || !deletePassword
+                      ? '#e8a0a0'
+                      : '#c0392b',
+                  color: '#fff', border: 'none',
+                  cursor:
+                    deleting || deleteConfirmText !== 'DELETE' || !deletePassword
+                      ? 'not-allowed'
+                      : 'pointer',
+                  fontFamily: "'Cinzel', serif", fontSize: '0.9rem',
+                  letterSpacing: '0.05em',
                 }}
               >
                 {deleting ? 'Deleting...' : 'Yes, Delete My Account'}
