@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
 // ── Base URL for resolving relative image paths from the backend ──────────────
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Make sure your .env has:  VITE_API_URL=https://your-backend.onrender.com
+const BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 const ProfilePage = () => {
   const { user, setUser, logout } = useAuth();
@@ -17,6 +18,7 @@ const ProfilePage = () => {
   const [newPw,   setNewPw]   = useState('');
   const [msg,     setMsg]     = useState('');
   const [msgType, setMsgType] = useState(''); // 'success' | 'error'
+  const [imgError, setImgError] = useState(false);
 
   // Delete account modal state
   const [showDeleteModal,    setShowDeleteModal]    = useState(false);
@@ -29,12 +31,11 @@ const ProfilePage = () => {
   // ── Resolve profile pic URL ───────────────────────────────────────────
   const resolvePicSrc = (profilePic) => {
     if (!profilePic) return null;
-    // Already an absolute URL (e.g. Cloudinary, S3, etc.)
     if (profilePic.startsWith('http://') || profilePic.startsWith('https://')) {
       return profilePic;
     }
-    // Relative path — prepend the API base URL
-    return `${BASE_URL}${profilePic.startsWith('/') ? '' : '/'}${profilePic}`;
+    const path = profilePic.startsWith('/') ? profilePic : `/${profilePic}`;
+    return `${BASE_URL}${path}`;
   };
 
   const picSrc = resolvePicSrc(user?.profilePic);
@@ -43,6 +44,7 @@ const ProfilePage = () => {
   const handleProfile = async (e) => {
     e.preventDefault();
     setMsg('');
+    setImgError(false);
     const fd = new FormData();
     fd.append('name', name);
     fd.append('bio',  bio);
@@ -50,6 +52,7 @@ const ProfilePage = () => {
 
     try {
       const { data } = await API.put('/auth/profile', fd);
+      console.log('[ProfilePage] Updated user:', data); // ← debug
       setUser(data);
       showMsg('Profile updated successfully!');
     } catch (err) {
@@ -99,11 +102,13 @@ const ProfilePage = () => {
 
       {/* ── Profile card ── */}
       <section className='card-warm' style={{ marginBottom: '30px', textAlign: 'center' }}>
-        {picSrc ? (
+
+        {/* Profile picture or fallback emoji */}
+        {picSrc && !imgError ? (
           <img
             src={picSrc}
             alt='Profile'
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            onError={() => setImgError(true)}
             style={{
               width: 100, height: 100,
               borderRadius: '50%',
@@ -116,6 +121,18 @@ const ProfilePage = () => {
         ) : (
           <div style={{ fontSize: 64, marginBottom: 8 }}>♟️</div>
         )}
+
+        {/* ── DEBUG BLOCK: shows the raw pic value and resolved URL ──
+            Remove this <details> block once profile picture is working. */}
+        <details style={{ fontSize: '0.7rem', color: '#999', margin: '4px auto 8px', maxWidth: 320, textAlign: 'left' }}>
+          <summary style={{ cursor: 'pointer', color: '#bbb' }}>🔍 Debug pic info</summary>
+          <code style={{ wordBreak: 'break-all', display: 'block', marginTop: 4 }}>
+            pic field: {user?.profilePic || '(empty)'}<br/>
+            resolved:  {picSrc || '(null)'}<br/>
+            imgError:  {String(imgError)}
+          </code>
+        </details>
+
         <h2 style={{ fontFamily: "'Cinzel', serif" }}>{user?.name}</h2>
         {user?.bio && (
           <p style={{ fontStyle: 'italic', color: 'var(--text-secondary)', marginTop: 6 }}>
@@ -180,7 +197,7 @@ const ProfilePage = () => {
             )}
             <input
               id='prof-pic' type='file' accept='image/*'
-              onChange={e => setPic(e.target.files[0])}
+              onChange={e => { setPic(e.target.files[0]); setImgError(false); }}
               style={{ marginTop: 6, fontFamily: "'Crimson Text', serif" }}
             />
             <span className='info-msg'>JPG, PNG, GIF or WebP — max 5 MB</span>
@@ -269,7 +286,6 @@ const ProfilePage = () => {
               position: 'relative',
             }}
           >
-            {/* Close button */}
             <button
               onClick={() => {
                 setShowDeleteModal(false);
