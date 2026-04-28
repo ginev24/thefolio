@@ -70,7 +70,11 @@ router.put('/profile', protect, upload.single('profilePic'), async (req, res) =>
     const user = await User.findById(req.user._id);
     if (req.body.name) user.name = req.body.name;
     if (req.body.bio !== undefined) user.bio = req.body.bio;
-    if (req.file) user.profilePic = req.file.filename;
+
+    // ✅ FIX: use req.file.path — this is the full Cloudinary HTTPS URL
+    // req.file.filename is just the local filename, not the Cloudinary URL
+    if (req.file) user.profilePic = req.file.path;
+
     await user.save();
     const updated = await User.findById(user._id).select('-password');
     res.json(updated);
@@ -103,30 +107,21 @@ router.delete('/delete-account', protect, async (req, res) => {
     if (!user)
       return res.status(404).json({ message: 'User not found' });
 
-    // Verify password before deleting
     const match = await user.matchPassword(password);
     if (!match)
       return res.status(400).json({ message: 'Incorrect password' });
 
-    // Prevent admin from deleting their own account
     if (user.role === 'admin')
       return res.status(403).json({ message: 'Admin accounts cannot be self-deleted' });
 
     const userId = user._id;
 
-    // 1. Delete all posts by this user
     await Post.deleteMany({ author: userId });
-
-    // 2. Delete all top-level comments by this user
     await Comment.deleteMany({ author: userId });
-
-    // 3. Remove replies this user made on other people's comments
     await Comment.updateMany(
       { 'replies.author': userId },
       { $pull: { replies: { author: userId } } }
     );
-
-    // 4. Delete the user
     await User.findByIdAndDelete(userId);
 
     res.json({ message: 'Account deleted successfully' });
